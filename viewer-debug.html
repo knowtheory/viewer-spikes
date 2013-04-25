@@ -32,6 +32,8 @@
           top: 0;
           max-height: 10em;
           overflow: hidden; }
+        .page.loaded {
+          background: green; }
     </style>
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
@@ -57,10 +59,6 @@
           this.renderPageElements();
           this.calculateGeometry();
           this.boostrapStreams();
-        },
-
-        loadPage: function() {
-
         },
 
         calculateGeometry: function() {
@@ -95,6 +93,7 @@
 
         loadPage: function(page) {
           console.log('Loading Page:', page);
+          this.$(this.pageEls[page]).addClass('loaded');
         },
 
         renderPageElements: function() {
@@ -107,7 +106,7 @@
 
         boostrapStreams: function() {
           this.currentPage = this.$el.asEventStream('scroll')
-                                     .throttle(200)
+                                     .throttle(100)
                                      .map($.proxy(this, 'mapCurrentPage'))
                                      .skipDuplicates();
 
@@ -115,7 +114,7 @@
             console.log('Current Page:', page);
           });
 
-          this.currentPage.debounce(1000).onValue($.proxy(this, 'loadPage'));
+          this.currentPage.debounce(100).onValue($.proxy(this, 'loadPage'));
         },
 
         render: function() {
