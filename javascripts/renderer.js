@@ -2,8 +2,8 @@ DV.views.Renderer = Backbone.View.extend({
   className: 'wrapper',
   tagName: 'div',
 
-  DEFAULT_HEIGHT: 906,
-  MAX_PAGES_LOADED: 10,
+  DEFAULT_HEIGHT: 777,
+  MAX_PAGES_LOADED: 50,
 
   initialize: function() {
     this.pageEls = [];
@@ -55,7 +55,7 @@ DV.views.Renderer = Backbone.View.extend({
     // Has never been instanced or loaded
     if (!_.has(this.pageViews, page)) {
       var pageEl = this.pageEls[page];
-      var view = this.pageViews[page] = new DV.views.RendererPage({el: pageEl}).render();
+      var view = this.pageViews[page] = new DV.views.RendererPage({el: pageEl, number: page + 1}).render();
       this.pageViewStream.push({page: page, view: view});
     }
     // Has been instanced, but isn't loaded
@@ -84,7 +84,7 @@ DV.views.Renderer = Backbone.View.extend({
   },
 
   renderPageElements: function() {
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 2000; i++) {
       var pageEl = $('<div class="page"></div>').height(this.DEFAULT_HEIGHT);
       this.pageEls[i] = pageEl;
       this.pagesEl.append(pageEl);
