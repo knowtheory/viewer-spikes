@@ -6,17 +6,42 @@ DV.views.Renderer = Backbone.View.extend({
   MAX_PAGES_LOADED: 50,
 
   initialize: function() {
+    this.data = this.options.data;
+
     this.pageEls = [];
 
     this.pageViewStream = new Bacon.Bus();
     this.pageViews = {};
     this.loadedPageViews = {};
+
+    // Set up the stream of the current page as derived from the UI
+    this.currentPageStream = this.$el.asEventStream('scroll')
+                                     .throttle(100)
+                                     .map($.proxy(this, 'mapCurrentPage'))
+                                     .skipDuplicates();
+
+    // When the view reports the current page, push it into the data stream.
+    this.currentPageStream.onValue(function(page) {
+      this.data.set('currentPage', page);
+    });
+
+    // When the global current page updates, move to that page.
+    this.data.values.currentPage.onValue($.proxy(this, 'onValueGoToPage'));
+
+    // Only load the page once the user has been there for a quarter of a second
+    this.currentPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
+
+    // When a new page view materializes, mark it as loaded.
+    this.pageViewStream.onValue($.proxy(this, 'onValueMarkPageLoaded'));
+
+    // Whenever a new page materializes, wait five seconds, then clear out any
+    // old ones.
+    this.pageViewStream.debounce(5000).onValue($.proxy(this, 'onValueUnloadPages'));
   },
 
   setDocument: function(doc) {
     this.renderPageElements();
     this.calculateGeometry();
-    this.boostrapStreams();
   },
 
   calculateGeometry: function() {
@@ -49,7 +74,7 @@ DV.views.Renderer = Backbone.View.extend({
     return -1;
   },
 
-  loadPage: function(page) {
+  onValueLoadPage: function(page) {
     console.log('Loading Page:', page);
 
     // Has never been instanced or loaded
@@ -65,11 +90,11 @@ DV.views.Renderer = Backbone.View.extend({
     }
   },
 
-  markPageLoaded: function(update) {
+  onValueMarkPageLoaded: function(update) {
     this.loadedPageViews[update.page] = new Date();
   },
 
-  unloadPages: function(update) {
+  onValueUnloadPages: function(update) {
     var pairs = _.pairs(this.loadedPageViews);
     if (pairs.length >= this.MAX_PAGES_LOADED) {
       var sorted = pairs.sort(function(x, y) { return x[1] - y[1];});
@@ -83,28 +108,16 @@ DV.views.Renderer = Backbone.View.extend({
     }
   },
 
+  onValueGoToPage: function(page) {
+    this.$el.scrollTop(this.geometry[page].top);
+  },
+
   renderPageElements: function() {
     for (var i = 0; i < 2000; i++) {
       var pageEl = $('<div class="page"></div>').height(this.DEFAULT_HEIGHT);
       this.pageEls[i] = pageEl;
       this.pagesEl.append(pageEl);
     }
-  },
-
-  boostrapStreams: function() {
-    this.currentPage = this.$el.asEventStream('scroll')
-                               .throttle(100)
-                               .map($.proxy(this, 'mapCurrentPage'))
-                               .skipDuplicates();
-
-    this.currentPage.onValue(function(page) {
-      console.log('Current Page:', page);
-    });
-
-    this.currentPage.debounce(250).onValue($.proxy(this, 'loadPage'));
-
-    this.pageViewStream.onValue($.proxy(this, 'markPageLoaded'));
-    this.pageViewStream.debounce(5000).onValue($.proxy(this, 'unloadPages'));
   },
 
   render: function() {

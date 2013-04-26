@@ -71,28 +71,26 @@
         this.values = {};
         for (var prop in initial) {
           if (_.has(initial, prop)) {
-            this.values[prop] = new Bacon.Bus();
+            var bus = this.values[prop + '_bus'] = new Bacon.Bus();
+            this.values[prop] = bus.skipDuplicates();
             if (!_.isEmpty(initial[prop])) {
-              this.values[prop].push(initial[prop]);
+              bus.push(initial[prop]);
             }
           }
         }
 
-        this.all = new Bacon.Bus();
+        this.all_bus = new Bacon.Bus();
+        this.all = this.all_bus.skipDuplicates();
       };
 
       Data.prototype = {
         set: function(key, value) {
-          this.values[key].push(value);
-          this.all.push({key: key, value: value});
+          this.values[key + '_bus'].push(value);
+          this.all_bus.push({key: key, value: value});
         }
       };
 
       $(function() {
-        renderer = new DV.views.Renderer();
-        $('body').append(renderer.render().el);
-        renderer.setDocument(null);
-
         // Boostrap test state machine
         state = new State({
           initial: 'green',
@@ -108,7 +106,7 @@
         data = new Data({
           state       : null, 
           zoomLevel   : '1:1',
-          currentPage : null
+          currentPage : 0
         });
 
         // Create a subscription to state updates which updates the state in 
@@ -126,6 +124,10 @@
         data.values.zoomLevel.onValue(function(value) {
           console.log('Zoom level is', value);
         });
+
+        renderer = new DV.views.Renderer({data: data});
+        $('body').append(renderer.render().el);
+        renderer.setDocument(null);
 
       });
     </script>
