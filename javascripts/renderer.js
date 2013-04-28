@@ -27,7 +27,7 @@ DV.views.Renderer = Backbone.View.extend({
 
     // This stream is used to report when the UI should update the current page 
     // i.e. scroll to the page.
-    this.setCurrentPageStream = this.data.values.currentPage.filter(function(p) {return p.source != 'viewport';}).map('.page');
+    this.setCurrentPageStream = this.data.currentPage.filter(function(p) {return p.source != 'viewport';}).map('.page');
 
     // When the global current page updates, move to that page.
     this.setCurrentPageStream.onValue($.proxy(this, 'onValueGoToPage'));

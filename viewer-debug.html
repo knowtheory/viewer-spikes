@@ -70,11 +70,10 @@
       // Data is basically a key/value store, where the values are only
       // accessible via event streams
       var Data = function(initial) {
-        this.values = {};
         for (var prop in initial) {
           if (_.has(initial, prop)) {
-            var bus = this.values[prop + '_bus'] = new Bacon.Bus();
-            this.values[prop] = bus.skipDuplicates();
+            var bus = this[prop + '_bus'] = new Bacon.Bus();
+            this[prop] = bus.skipDuplicates().toProperty();
             if (!_.isEmpty(initial[prop])) {
               bus.push(initial[prop]);
             }
@@ -87,7 +86,7 @@
 
       Data.prototype = {
         set: function(key, value) {
-          this.values[key + '_bus'].push(value);
+          this[key + '_bus'].push(value);
           this.all_bus.push({key: key, value: value});
         }
       };
@@ -106,9 +105,9 @@
 
         // Create a data store
         data = new Data({
-          state       : null, 
+          state       : state.current, 
           zoomLevel   : '1:1',
-          currentPage : 0
+          currentPage : null
         });
 
         // Create a subscription to state updates which updates the state in 
@@ -123,13 +122,16 @@
         });
 
         // Subscribe to changes only on the 'zoomLevel' key
-        data.values.zoomLevel.onValue(function(value) {
+        data.zoomLevel.onValue(function(value) {
           console.log('Zoom level is', value);
         });
 
         renderer = new DV.views.Renderer({data: data});
         $('body').append(renderer.render().el);
         renderer.setDocument(null);
+
+        // Set the first page.
+        data.set('currentPage', {page: 0});
 
       });
     </script>
