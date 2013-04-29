@@ -9,21 +9,47 @@
       
       .wrapper {
         border: 2px solid black;
-        width: 900px;
-        height: 500px;
+        position: absolute;
+        top: 2em;
+        right: 2em;
+        bottom: 2em;
+        left: 2em;
         overflow: scroll;
+        margin: 1em auto;
         -webkit-overflow-scrolling: touch; }
       
       .pages {
         margin: 0 auto;
-        width: 600px; }
+        width: 100%; }
+
+      .wrapper.zoom-1 .pages {width: 50%;}
+      .wrapper.zoom-2 .pages {width: 75%;}
+      .wrapper.zoom-3 .pages {width: 100%;}
+      .wrapper.zoom-4 .pages {width: 125%;}
+      .wrapper.zoom-5 .pages {width: 150%;}
       
+      .wrapper.full-screen {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      .wrapper.fixed-size {
+        top: auto;
+        right: auto;
+        bottom: auto;
+        left: auto;
+        width: 600px;
+        height: 900px;
+      }
       .page {
         position: relative;
         width: 100%;
         margin-top: 20px;
         background: red;
-        border: 2px solid #999; }
+        border: 2px solid #999;
+        height: 0; }
         .page img {
           width: 100%; }
         .page .number,
@@ -35,6 +61,15 @@
           overflow: hidden; }
         .page.loaded {
           border-color: green; }
+
+        .liner {
+          background: yellow;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+        }
     </style>
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
@@ -43,6 +78,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/bacon.js/0.3.5/Bacon.min.js" type="text/javascript"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/javascript-state-machine/2.0.0/state-machine.min.js" type="text/javascript"></script>
 
+    <script src="javascripts/bacon_extensions.js" type="text/javascript"></script>
     <script src="javascripts/namespace.js" type="text/javascript"></script>
     <script src="javascripts/documents.js" type="text/javascript"></script>
     <script src="javascripts/renderer.js" type="text/javascript"></script>
@@ -107,7 +143,8 @@
         // Create a data store
         data = new Data({
           state       : null, 
-          zoomLevel   : '1:1',
+          zoomLevel   : '3',
+          viewerMode  : 'full-screen',
           currentPage : 0
         });
 

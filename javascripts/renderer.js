@@ -4,9 +4,10 @@ DV.views.Renderer = Backbone.View.extend({
 
   DEFAULT_HEIGHT: 777,
   MAX_PAGES_LOADED: 50,
+  DEFAULT_ASPECT: 1.3,
 
   initialize: function() {
-    this.data = this.options.data;
+    this.data = this.options.data; 
 
     this.pageEls = [];
 
@@ -14,9 +15,11 @@ DV.views.Renderer = Backbone.View.extend({
     this.pageViews = {};
     this.loadedPageViews = {};
 
+    this.scrollStream = this.$el.asEventStream('scroll')
+                                  .throttle(100)
+
     // Set up the stream of the current page as derived from the UI
-    this.currentPageStream = this.$el.asEventStream('scroll')
-                                     .throttle(100)
+    this.currentPageStream = this.scrollStream
                                      .map($.proxy(this, 'mapCurrentPage'))
                                      .skipDuplicates();
 
@@ -33,6 +36,9 @@ DV.views.Renderer = Backbone.View.extend({
 
     // When a new page view materializes, mark it as loaded.
     this.pageViewStream.onValue($.proxy(this, 'onValueMarkPageLoaded'));
+
+    // When the zoom level changes...
+    this.data.values.zoomLevel.onValue($.proxy(this, 'onValueSetZoomLevel'));
 
     // Whenever a new page materializes, wait five seconds, then clear out any
     // old ones.
@@ -109,12 +115,18 @@ DV.views.Renderer = Backbone.View.extend({
   },
 
   onValueGoToPage: function(page) {
-    this.$el.scrollTop(this.geometry[page].top);
+    if (this.geometry[page]) {this.$el.scrollTop(this.geometry[page].top)};
+  },
+
+  onValueSetZoomLevel: function(level) {
+    this.$el.removeClass(function(index, name) {
+        return (name.match(/\bzoom-[\S]+/g) || []).join(' ');
+      }).addClass('zoom-' + level);
   },
 
   renderPageElements: function() {
     for (var i = 0; i < 2000; i++) {
-      var pageEl = $('<div class="page"></div>').height(this.DEFAULT_HEIGHT);
+      var pageEl = $('<div class="page"></div>').css('padding-top', (this.DEFAULT_ASPECT * 100) + '%');
       this.pageEls[i] = pageEl;
       this.pagesEl.append(pageEl);
     }
