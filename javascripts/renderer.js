@@ -8,7 +8,7 @@ DV.views.Renderer = Backbone.View.extend({
 
   initialize: function() {
     this.data = this.options.data; 
-    console.log(this.data)
+
     this.pageEls = [];
 
     this.pageViewStream = new Bacon.Bus();
@@ -23,6 +23,31 @@ DV.views.Renderer = Backbone.View.extend({
 
     // Set up the stream of the current page as derived from the UI
     this.currentUIPageStream = this.scrollStream.map($.proxy(this, 'mapCurrentPage')).skipDuplicates();
+
+    //The scroll position as a proportion of the total scrollable height
+    this.scrollPositionStream = this.scrollStream
+                                    .map($.proxy(this, 'mapScrollPosition'))
+                                    .skipDuplicates();
+
+    //A stream of resize events on the window, mapped to provide a timeStamp, and the current window width
+    //The width is used to predict the height of the pages element later - on the hunch that 
+    //it's quicker to fetch than the height of a 1000's page document.
+    this.windowResizeStream = $(window).asEventStream('resize')
+                                        .map(function(e){return {timeStamp: e.timeStamp, width: $(window).width()}})
+
+    //A trigger stream - when there's been 1s or more since the last resize
+    this.resizeExpiredStream = this.windowResizeStream.afterExpiry(1000)
+
+    //Retain the scroll position by sampling the scroll position whenever the viewport begins resizing, as follows:
+    //Take the scroll position
+    //Emit an event whenever the resize has expired (not during a resize)
+    //Then combine that stream with the resize events themselves, preserving only the position
+    this.retainScrollPositionStream = this.scrollPositionStream.toProperty({})
+                                      .sampledBy(this.resizeExpiredStream)
+                                      .combine(this.windowResizeStream, function(position, resize){return $.extend({}, position, resize)});
+
+    //Fire the 'retain position' calc:    
+    this.retainScrollPositionStream.onValue($.proxy(this, 'onValueRetainScrollPosition'));
 
     // When the view reports the current page, push it into the data stream.
     this.currentUIPageStream.onValue(function(page) {
@@ -86,6 +111,14 @@ DV.views.Renderer = Backbone.View.extend({
     return -1;
   },
 
+  //Return the scrollTop, the overall height and the proportional scroll position
+  mapScrollPosition: function(e){
+    var height = this.pagesEl.height();
+    var scrollTop = $(e.target).scrollTop();
+    var aspect = $(window).width() / height;
+    return {proportion: scrollTop / height, aspect: aspect};
+  },
+
   onValueLoadPage: function(page) {
     console.log('Loading Page:', page);
 
@@ -104,6 +137,11 @@ DV.views.Renderer = Backbone.View.extend({
 
   onValueMarkPageLoaded: function(update) {
     this.loadedPageViews[update.page] = new Date();
+  },
+
+  //Guess the new height, based on the incoming width and aspect, then apply the proportional scroll position:
+  onValueRetainScrollPosition: function(position){
+    this.$el.scrollTop((position.width / position.aspect) * position.proportion)
   },
 
   onValueUnloadPages: function(update) {
