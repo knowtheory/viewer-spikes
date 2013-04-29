@@ -1,16 +1,13 @@
 DV.views.RendererPage = Backbone.View.extend({
   initialize: function() {
-
+    this.resourceURL = this.options.resource.replace(/\{size\}/, 'normal').replace(/\{page\}/, this.options.number);
   },
 
   render: function() {
     this.$wrapper = $('<div class="liner"></div>');
     this.$p = $('<p></p>').text(this.options.number).addClass('number');
-    var number = this.options.number > 100 ? this.options.number - 100 : this.options.number;
-    
-    this.$img = $('<img />').attr("src", "http://s3.documentcloud.org/documents/282753/pages/lefler-thesis-p" + number + "-normal.gif");
+    this.$img = $('<img />').attr("src", this.resourceURL);
     this.$img.load(this.imageLoad);
-
     this.$el.append(this.$wrapper.append(this.$p, this.$img));
     this.$el.addClass('loaded');
     return this;

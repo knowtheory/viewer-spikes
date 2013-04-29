@@ -7,8 +7,8 @@ DV.views.Renderer = Backbone.View.extend({
   DEFAULT_ASPECT: 1.3,
 
   initialize: function() {
-    this.data = this.options.data; 
-    console.log(this.data)
+    this.viewer = this.options.viewer;
+
     this.pageEls = [];
 
     this.pageViewStream = new Bacon.Bus();
@@ -26,16 +26,8 @@ DV.views.Renderer = Backbone.View.extend({
 
     // When the view reports the current page, push it into the data stream.
     this.currentUIPageStream.onValue(function(page) {
-      this.data.set('currentPage', {source: 'viewport', page: page});
+      this.viewer.data.set('currentPage', {source: 'viewport', page: page});
     });
-
-    // This stream is used to report when the UI should update the current page 
-    // i.e. scroll to the page.
-    this.setCurrentPageStream = this.data.currentPage.filter(function(p) {return p.source != 'viewport';}).map('.page');
-
-    // When the global current page updates, move to that page.
-    this.setCurrentPageStream.onValue($.proxy(this, 'onValueGoToPage'));
-
 
     // Only load the page once the user has been there for a quarter of a second
     this.currentUIPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
@@ -43,22 +35,31 @@ DV.views.Renderer = Backbone.View.extend({
     // When a new page view materializes, mark it as loaded.
     this.pageViewStream.onValue($.proxy(this, 'onValueMarkPageLoaded'));
 
-    // When the zoom level changes...
-    this.data.zoomLevel.onValue($.proxy(this, 'onValueSetZoomLevel'));
-
     // Whenever a new page materializes, wait five seconds, then clear out any
     // old ones.
     this.pageViewStream.debounce(5000).onValue($.proxy(this, 'onValueUnloadPages'));
-  },
 
-  setDocument: function(doc) {
-    this.renderPageElements();
-    this.calculateGeometry();
+    // Subscribe to the document property so we can load up the pages
+    this.viewer.data.document.onValue($.proxy(this, 'documentReceived'));
+
+    // This stream is used to report when the UI should update the current page 
+    // i.e. scroll to the page.
+    this.setCurrentPageStream = this.viewer.data.currentPage.filter(function(p) {return p.source != 'viewport';}).map('.page');
+
+    // When the global current page updates, move to that page.
+    this.setCurrentPageStream.onValue($.proxy(this, 'onValueGoToPage'));
   },
 
   calculateGeometry: function() {
+    // use the this.pagesEl position to get the actual position
+    // don't forget padding.
+
+    var o = this.pagesEl.position().top - 20; // 20 is the padding
+
     this.geometry = _.map(this.pageEls, function(el) {
-      var top = el.offset().top, height = el.height();
+      var top = el.position().top - o;
+      var height = el.outerHeight();
+
       return {
         top     : top,
         bottom  : top + height,
@@ -92,7 +93,8 @@ DV.views.Renderer = Backbone.View.extend({
     // Has never been instanced or loaded
     if (!_.has(this.pageViews, page)) {
       var pageEl = this.pageEls[page];
-      var view = this.pageViews[page] = new DV.views.RendererPage({el: pageEl, number: page + 1}).render();
+      var opts = {el: pageEl, number: page + 1, resource: this.pageResource};
+      var view = this.pageViews[page] = new DV.views.RendererPage(opts).render();
       this.pageViewStream.push({page: page, view: view});
     }
     // Has been instanced, but isn't loaded
@@ -128,15 +130,22 @@ DV.views.Renderer = Backbone.View.extend({
     this.$el.removeClass(function(index, name) {
         return (name.match(/\bzoom-[\S]+/g) || []).join(' ');
       }).addClass('zoom-' + level);
+
+    this.calculateGeometry();
   },
 
-  renderPageElements: function() {
+  documentReceived: function(doc) {
+    this.pageResource = doc.get('page_resource');
 
-    for (var i = 0; i < 200; i++) {
-      var pageEl = $('<div class="page"></div>').css('padding-top', (this.DEFAULT_ASPECT * 100) + '%');
-      this.pageEls[i] = pageEl;
-      this.pagesEl.append(pageEl);
+    for (var i = 0; i < doc.get('pages'); i++) {
+      this.pageEls.push($('<div class="page"></div>').css('padding-top', this.DEFAULT_ASPECT * 100 + '%'));
     }
+
+    this.pagesEl.append(this.pageEls);
+    this.calculateGeometry();
+
+    // When the zoom level changes...
+    this.viewer.data.zoomLevel.onValue($.proxy(this, 'onValueSetZoomLevel'));
   },
 
   render: function() {
