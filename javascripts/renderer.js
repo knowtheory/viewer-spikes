@@ -8,7 +8,7 @@ DV.views.Renderer = Backbone.View.extend({
 
   initialize: function() {
     this.data = this.options.data; 
-
+    console.log(this.data)
     this.pageEls = [];
 
     this.pageViewStream = new Bacon.Bus();
@@ -18,27 +18,33 @@ DV.views.Renderer = Backbone.View.extend({
     this.scrollStream = this.$el.asEventStream('scroll')
                                   .throttle(100)
 
+    // An event stream which fires when the user scrolls.
+    this.scrollStream = this.$el.asEventStream('scroll').throttle(100);
+
     // Set up the stream of the current page as derived from the UI
-    this.currentPageStream = this.scrollStream
-                                     .map($.proxy(this, 'mapCurrentPage'))
-                                     .skipDuplicates();
+    this.currentUIPageStream = this.scrollStream.map($.proxy(this, 'mapCurrentPage')).skipDuplicates();
 
     // When the view reports the current page, push it into the data stream.
-    this.currentPageStream.onValue(function(page) {
-      this.data.set('currentPage', page);
+    this.currentUIPageStream.onValue(function(page) {
+      this.data.set('currentPage', {source: 'viewport', page: page});
     });
 
+    // This stream is used to report when the UI should update the current page 
+    // i.e. scroll to the page.
+    this.setCurrentPageStream = this.data.currentPage.filter(function(p) {return p.source != 'viewport';}).map('.page');
+
     // When the global current page updates, move to that page.
-    this.data.values.currentPage.onValue($.proxy(this, 'onValueGoToPage'));
+    this.setCurrentPageStream.onValue($.proxy(this, 'onValueGoToPage'));
+
 
     // Only load the page once the user has been there for a quarter of a second
-    this.currentPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
+    this.currentUIPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
 
     // When a new page view materializes, mark it as loaded.
     this.pageViewStream.onValue($.proxy(this, 'onValueMarkPageLoaded'));
 
     // When the zoom level changes...
-    this.data.values.zoomLevel.onValue($.proxy(this, 'onValueSetZoomLevel'));
+    this.data.zoomLevel.onValue($.proxy(this, 'onValueSetZoomLevel'));
 
     // Whenever a new page materializes, wait five seconds, then clear out any
     // old ones.
@@ -125,7 +131,8 @@ DV.views.Renderer = Backbone.View.extend({
   },
 
   renderPageElements: function() {
-    for (var i = 0; i < 2000; i++) {
+
+    for (var i = 0; i < 200; i++) {
       var pageEl = $('<div class="page"></div>').css('padding-top', (this.DEFAULT_ASPECT * 100) + '%');
       this.pageEls[i] = pageEl;
       this.pagesEl.append(pageEl);
