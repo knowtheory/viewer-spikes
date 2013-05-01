@@ -48,7 +48,19 @@
   DV.load = function(resource, options) {
     console.log("Loading lol");
     
-    DV.$(options.container).append("<div>Viewer goes here</div>");
+    DV.$(options.container).append(JST['viewer']({
+      autoZoom: false,
+      mini: false,
+      options: {},
+      header: "<div>Header</div>",
+      pages: "<div>Pages</div>",
+      descriptionContainer: "<div>descriptionContainer</div>",
+      pdf_url: "pdf_url",
+      print_notes_url: "print_notes_url",
+      story_url: "story_url",
+      contributors: "contributors",
+      footer: "<div>Footer</div>"
+    }));
   }
 
   window.currentDocument = DV.load(
