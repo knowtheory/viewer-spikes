@@ -1,0 +1,1 @@
+DV.documents = new DV.model.DocumentSet();
