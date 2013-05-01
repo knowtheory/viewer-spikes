@@ -48,18 +48,42 @@
   DV.load = function(resource, options) {
     console.log("Loading lol");
     
+    var render_pages = function(){
+      var pages = [];
+      var totalPages = 3;
+      var totalPagesToCreate = (totalPages < 3) ? totalPages : 3;
+      var pageHeight = 700;
+
+      for (var i = 0; i < totalPagesToCreate; i++) {
+        pages.push(JST['pages']({ pageNumber: i+1, pageIndex: i , pageImageSource: null, baseHeight: pageHeight }));
+      }
+
+      return pages.join('');
+    }
+    
+    var headerHTML = JST['header']({
+      story_url: "story_url",
+      title: "title",
+      id: "id"
+    });
+
+    var pagesHTML  = render_pages();
+    var footerHTML = JST['footer']({
+      options: {}
+    });
+    
     DV.$(options.container).append(JST['viewer']({
       autoZoom: false,
       mini: false,
       options: {},
-      header: "<div>Header</div>",
-      pages: "<div>Pages</div>",
+      header: headerHTML,
+      pages: pagesHTML,
       descriptionContainer: "<div>descriptionContainer</div>",
       pdf_url: "pdf_url",
       print_notes_url: "print_notes_url",
       story_url: "story_url",
       contributors: "contributors",
-      footer: "<div>Footer</div>"
+      footer: footerHTML
     }));
   }
 
