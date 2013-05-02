@@ -69,13 +69,13 @@
 
     var pagesHTML  = render_pages();
     var footerHTML = JST['footer']({
-      options: {}
+      options: options
     });
     
     DV.$(options.container).append(JST['viewer']({
       autoZoom: false,
       mini: false,
-      options: {},
+      options: options,
       header: headerHTML,
       pages: pagesHTML,
       descriptionContainer: "<div>descriptionContainer</div>",
@@ -90,7 +90,10 @@
   window.currentDocument = DV.load(
     //'http://www.documentcloud.org/documents/282753-lefler-thesis.js',
     'http://dev.dcloud.org/documents/256525-lefler-thesis.js',
-    {container: '#document-viewer'}
+    {
+      container: '#document-viewer',
+      sidebar: true
+    }
   );
 </script>
 
