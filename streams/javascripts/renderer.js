@@ -3,20 +3,16 @@ DV.views.Renderer = Backbone.View.extend({
   tagName: 'div',
 
   DEFAULT_HEIGHT: 777,
+  DEFAULT_PADDING: 20,
   MAX_PAGES_LOADED: 50,
   DEFAULT_ASPECT: 1.3,
 
   initialize: function() {
     this.viewer = this.options.viewer;
 
-    this.pageEls = [];
-
     this.pageViewStream = new Bacon.Bus();
     this.pageViews = {};
     this.loadedPageViews = {};
-
-    this.scrollStream = this.$el.asEventStream('scroll')
-                                  .throttle(100)
 
     // An event stream which fires when the user scrolls.
     this.scrollStream = this.$el.asEventStream('scroll').throttle(100);
@@ -30,7 +26,9 @@ DV.views.Renderer = Backbone.View.extend({
     });
 
     // Only load the page once the user has been there for a quarter of a second
-    this.currentUIPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
+    // this.currentUIPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
+
+    this.viewer.data.currentPage.onValue($.proxy(this, 'onValueLoadPage'));
 
     // When a new page view materializes, mark it as loaded.
     this.pageViewStream.onValue($.proxy(this, 'onValueMarkPageLoaded'));
@@ -50,22 +48,26 @@ DV.views.Renderer = Backbone.View.extend({
     this.setCurrentPageStream.onValue($.proxy(this, 'onValueGoToPage'));
   },
 
-  calculateGeometry: function() {
-    // use the this.pagesEl position to get the actual position
-    // don't forget padding.
+  setGeometry: function() {
+    this.geometry = [];
+    var offset = this.DEFAULT_PADDING;
+    var count = this.doc.get('pages');
+    var width = this.pagesEl.innerWidth();
 
-    var o = this.pagesEl.position().top - 20; // 20 is the padding
+    for (var i = 0; i < count; i++) {
+      var view = this.pageViews[i];
+      if (view) {
+        view.offsetTo(offset);
+        var height = view.height(width);
+        this.geometry.push({top: offset, bottom: offset + height, height: height});
+        offset += height + this.DEFAULT_PADDING;
+      } else {
+        this.geometry.push({top: offset, bottom: offset + this.DEFAULT_HEIGHT, height: this.DEFAULT_HEIGHT});
+        offset += this.DEFAULT_HEIGHT + this.DEFAULT_PADDING;
+      }
+    }
 
-    this.geometry = _.map(this.pageEls, function(el) {
-      var top = el.position().top - o;
-      var height = el.outerHeight();
-
-      return {
-        top     : top,
-        bottom  : top + height,
-        height  : height
-      };
-    }, this);
+    this.pagesEl.height(offset);
   },
 
   mapCurrentPage: function(e) {
@@ -87,19 +89,21 @@ DV.views.Renderer = Backbone.View.extend({
     return -1;
   },
 
-  onValueLoadPage: function(page) {
+  onValueLoadPage: function(update) {
+    var page = update.page;
+
     console.log('Loading Page:', page);
 
     // Has never been instanced or loaded
     if (!_.has(this.pageViews, page)) {
-      var pageEl = this.pageEls[page];
-      var opts = {el: pageEl, number: page + 1, resource: this.pageResource};
-      var view = this.pageViews[page] = new DV.views.RendererPage(opts).render();
+      var opts = {number: page + 1, resource: this.pageResource};
+      var view = this.pageViews[page] = new DV.views.RendererPage(opts);
+      this.pagesEl.append(view.render(this.geometry[page].top).el);
       this.pageViewStream.push({page: page, view: view});
     }
     // Has been instanced, but isn't loaded
     else if (!_.has(this.loadedPageViews, page)) {
-      var view = this.pageViews[page].reload();
+      var view = this.pageViews[page].reattach(this.pagesEl);
       this.pageViewStream.push({page: page, view: view});
     }
   },
@@ -116,7 +120,7 @@ DV.views.Renderer = Backbone.View.extend({
       for (var i = 0; i < targets.length; i++) {
         var page = targets[i][0];
         console.log('Evicting', page)
-        this.pageViews[page].unload();
+        this.pageViews[page].detach();
         delete this.loadedPageViews[page];
       }
     }
@@ -128,21 +132,17 @@ DV.views.Renderer = Backbone.View.extend({
 
   onValueSetZoomLevel: function(level) {
     this.$el.removeClass(function(index, name) {
-        return (name.match(/\bzoom-[\S]+/g) || []).join(' ');
-      }).addClass('zoom-' + level);
+      return (name.match(/\bzoom-[\S]+/g) || []).join(' ');
+    }).addClass('zoom-' + level);
 
-    this.calculateGeometry();
+    this.setGeometry();
   },
 
   documentReceived: function(doc) {
     this.pageResource = doc.get('page_resource');
+    this.doc = doc;
 
-    for (var i = 0; i < doc.get('pages'); i++) {
-      this.pageEls.push($('<div class="page"></div>').css('padding-top', this.DEFAULT_ASPECT * 100 + '%'));
-    }
-
-    this.pagesEl.append(this.pageEls);
-    this.calculateGeometry();
+    this.setGeometry();
 
     // When the zoom level changes...
     this.viewer.data.zoomLevel.onValue($.proxy(this, 'onValueSetZoomLevel'));
