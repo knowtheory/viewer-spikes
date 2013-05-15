@@ -17,18 +17,20 @@ DV.views.Renderer = Backbone.View.extend({
     // An event stream which fires when the user scrolls.
     this.scrollStream = this.$el.asEventStream('scroll').throttle(100);
 
+    // A stream of arrays, which contains the pages in view, in the order they
+    // are visible.
+    this.pagesInViewStream = this.scrollStream.map($.proxy(this, 'mapPagesInView')).skipDuplicates();
+
+    // Load any pages in view
+    this.pagesInViewStream.onValue($.proxy(this, 'onValueLoadPages'));
+
     // Set up the stream of the current page as derived from the UI
-    this.currentUIPageStream = this.scrollStream.map($.proxy(this, 'mapCurrentPage')).skipDuplicates();
+    this.currentUIPageStream = this.pagesInViewStream.map($.proxy(this, 'mapCurrentPage')).skipDuplicates();
 
     // When the view reports the current page, push it into the data stream.
     this.currentUIPageStream.onValue(function(page) {
       this.viewer.data.set('currentPage', {source: 'viewport', page: page});
     });
-
-    // Only load the page once the user has been there for a quarter of a second
-    // this.currentUIPageStream.debounce(250).onValue($.proxy(this, 'onValueLoadPage'));
-
-    this.viewer.data.currentPage.onValue($.proxy(this, 'onValueLoadPage'));
 
     // When a new page view materializes, mark it as loaded.
     this.pageViewStream.onValue($.proxy(this, 'onValueMarkPageLoaded'));
@@ -50,61 +52,72 @@ DV.views.Renderer = Backbone.View.extend({
 
   setGeometry: function() {
     this.geometry = [];
-    var offset = this.DEFAULT_PADDING;
     var count = this.doc.get('pages');
-    var width = this.pagesEl.innerWidth();
+    var height = 100 / count;
 
     for (var i = 0; i < count; i++) {
+      var top = i * height;
       var view = this.pageViews[i];
-      if (view) {
-        view.offsetTo(offset);
-        var height = view.height(width);
-        this.geometry.push({top: offset, bottom: offset + height, height: height});
-        offset += height + this.DEFAULT_PADDING;
-      } else {
-        this.geometry.push({top: offset, bottom: offset + this.DEFAULT_HEIGHT, height: this.DEFAULT_HEIGHT});
-        offset += this.DEFAULT_HEIGHT + this.DEFAULT_PADDING;
-      }
+
+      if (view) {view.offsetTo(offset)};
+
+      this.geometry.push({top: top, bottom: top + height, height: height});
     }
 
-    this.pagesEl.height(offset);
+    this.pagesEl.css({'padding-top': (this.DEFAULT_ASPECT * count * 100) + '%'});
   },
 
-  mapCurrentPage: function(e) {
-    var topBound = $(e.target).scrollTop();
-    var bottomBound = topBound + this.pagesEl.height();
+  mapPagesInView: function(e) {
+    var pagesHeight = this.pagesEl.outerHeight();
+    var scrollTop = this.$el.scrollTop();
+    var topBound = (scrollTop / pagesHeight) * 100;
+    var bottomBound = ((scrollTop + this.$el.height()) / pagesHeight) * 100;
+    var viewportHeight = bottomBound - topBound;
+    var pages = [];
 
     for (var i = 0; i < this.geometry.length; i++) {
       var entry = this.geometry[i];
 
-      // if topbound is less than the mid-point
-      // or if bottombound is greater than the mid-point
       if ((entry.top >= topBound && entry.top <= bottomBound) ||
           (entry.bottom >= topBound && entry.bottom <= bottomBound) ||
           (entry.top <= topBound && entry.bottom >= bottomBound)) {
-        return i;
+        var overlap = Math.max(0, Math.min(bottomBound, entry.bottom) - Math.max(topBound, entry.top));
+        pages.push({index: i, overlap: overlap});
+      }
+      else if (pages.length > 0) {
+        return pages;
       }
     }
 
-    return -1;
+    // If nothing matches at all, return pages anyhow
+    return pages;
   },
 
-  onValueLoadPage: function(update) {
-    var page = update.page;
+  mapCurrentPage: function(pages) {
+    // Grab the one with the greatest area
+    var sorted = pages.slice().sort(function(x, y) {
+      return y.overlap - x.overlap;
+    });
 
-    console.log('Loading Page:', page);
+    return sorted[0].index;
+  },
 
-    // Has never been instanced or loaded
-    if (!_.has(this.pageViews, page)) {
-      var opts = {number: page + 1, resource: this.pageResource};
-      var view = this.pageViews[page] = new DV.views.RendererPage(opts);
-      this.pagesEl.append(view.render(this.geometry[page].top).el);
-      this.pageViewStream.push({page: page, view: view});
-    }
-    // Has been instanced, but isn't loaded
-    else if (!_.has(this.loadedPageViews, page)) {
-      var view = this.pageViews[page].reattach(this.pagesEl);
-      this.pageViewStream.push({page: page, view: view});
+  onValueLoadPages: function(pages) {
+    for (var i = 0; i < pages.length; i++) {
+      var page = pages[i].index;
+
+      // Has never been instanced or loaded
+      if (!_.has(this.pageViews, page)) {
+        var opts = {number: page + 1, resource: this.pageResource};
+        var view = this.pageViews[page] = new DV.views.RendererPage(opts);
+        this.pagesEl.append(view.render(this.geometry[page].top).el);
+        this.pageViewStream.push({page: page, view: view});
+      }
+      // Has been instanced, but isn't loaded
+      else if (!_.has(this.loadedPageViews, page)) {
+        var view = this.pageViews[page].reattach(this.pagesEl);
+        this.pageViewStream.push({page: page, view: view});
+      }
     }
   },
 
@@ -127,7 +140,10 @@ DV.views.Renderer = Backbone.View.extend({
   },
 
   onValueGoToPage: function(page) {
-    if (this.geometry[page]) {this.$el.scrollTop(this.geometry[page].top)};
+    if (this.geometry[page]) {
+      var target = (this.geometry[page].top / 100) * this.$pagesWrapper.height();
+      this.$el.scrollTop(target); 
+    };
   },
 
   onValueSetZoomLevel: function(level) {
@@ -150,7 +166,8 @@ DV.views.Renderer = Backbone.View.extend({
 
   render: function() {
     this.pagesEl = $('<div class="pages"></div>');
-    this.$el.append(this.pagesEl);
+    this.$pagesWrapper = $('<div class="pages-wrapper"></div>');
+    this.$el.append(this.$pagesWrapper.append(this.pagesEl));
 
     return this;
   }

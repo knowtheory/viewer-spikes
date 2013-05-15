@@ -20,7 +20,7 @@ DV.views.RendererPage = Backbone.View.extend({
   },
 
   offsetTo: function(top) {
-    this.$el.css({top: top});
+    this.$el.css({top: top + '%'});
     return this;
   },
 
