@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+    </style>
+  </head>
+  <body>
+    <script src="javascripts/vendor/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="javascripts/vendor/underscore.js" type="text/javascript"></script>
+    <script src="javascripts/vendor/backbone.js" type="text/javascript"></script>
+    <script src="javascripts/namespace.js" type="text/javascript"></script>
+    <script src="javascripts/model.js" type="text/javascript"></script>
+    <script src="javascripts/view.js" type="text/javascript"></script>
+    <script src="document.json.js" type="text/javascript"></script>
+    <div id="viewer"></div>
+    <script type="text/javascript">
+      DC.$(function() {
+        viewer  = new DC.view.Viewer({ el: '#viewer' });
+        viewer.load(docdata); // docdata is loaded in the document.json.js
+      });
+    </script>
+  </body>
+</html>

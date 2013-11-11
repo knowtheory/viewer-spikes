@@ -1,0 +1,16 @@
+embed_images: datauri
+template_function: _.template
+
+javascripts:
+  viewer:
+    - javascripts/vendor/*.js
+    - javascripts/namespace.js
+    - javascripts/model.js
+    - javascripts/view.js
+  
+  templates:
+    - javascripts/templates/*.jst
+
+stylesheets:
+  viewer:
+    - stylesheets/*.css
