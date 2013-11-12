@@ -1,4 +1,7 @@
+.pages .page_number { float: left; }
 .pages .page {
   border: black 1px solid;
   margin:10px;
+  margin-left: 45px;
 }
+
