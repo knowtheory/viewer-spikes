@@ -1,16 +1,19 @@
 embed_images: datauri
-template_function: _.template
+template_function: DC._.template
+compress_assets: off
 
 javascripts:
   viewer:
-    - javascripts/vendor/*.js
-    - javascripts/namespace.js
-    - javascripts/model.js
-    - javascripts/view.js
+    - public/javascripts/vendor/jquery-1.10.2.js
+    - public/javascripts/vendor/underscore.js
+    - public/javascripts/vendor/backbone.js
+    - public/javascripts/namespace.js
+    - public/javascripts/model.js
+    - public/javascripts/view.js
   
   templates:
-    - javascripts/templates/*.jst
+    - public/javascripts/templates/*.jst
 
 stylesheets:
   viewer:
-    - stylesheets/*.css
+    - public/stylesheets/*.css
