@@ -32,7 +32,10 @@ DC.model.NoteSet = DC.Backbone.Collection.extend({
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
-  
+  defaults: {
+    height: 906,
+    width:  700
+  }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({

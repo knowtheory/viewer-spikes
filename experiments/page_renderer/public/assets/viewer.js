@@ -12725,7 +12725,10 @@ DC.model.NoteSet = DC.Backbone.Collection.extend({
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
-  
+  defaults: {
+    height: 906,
+    width:  700
+  }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
@@ -12763,10 +12766,12 @@ DC.view.Viewer = DC.Backbone.View.extend({
   
   render: function() {
     this.$el.html(JST['viewer']({ document: this.model }));
+    this.renderSubviews();
+    return this;
   },
   
   renderSubviews: function() {
-    
+    this.$('.pages').append(this.pages.render().el);
   },
   
   setDocument: function(data) {
@@ -12781,5 +12786,9 @@ DC.view.Viewer = DC.Backbone.View.extend({
 });
 
 DC.view.PageList = DC.Backbone.View.extend({
-  
+  className: 'pages',
+  render: function() {
+    this.$el.html( this.collection.map( function( model ){ return JST['page']({ page: model.toJSON() }); } ) );
+    return this;
+  }
 });
