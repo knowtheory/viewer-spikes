@@ -12709,10 +12709,10 @@ DC.model.Document = DC.Backbone.Model.extend({
     this.on( 'change:sections',    function( model, section_data ){ this.sections.reset(section_data); }, this );
     this.on( 'change:pages',       function( model, pageCount ){ this.pages = DC.model.PageSet.createPages(pageCount); }, this);
     this.on( 'change:resources',   function( model, resource_data ){ 
-      this.resources.set(resource_data); 
+      this.resources.set(resource_data);
+      DC._.extend(DC.model.Page.prototype.defaults, this.resources.get('page'));
       DC._.extend(this.notes, { url: this.resources.get('annotations_url') });
     }, this );
-
   }
 });
 
@@ -12729,6 +12729,19 @@ DC.model.Page = DC.Backbone.Model.extend({
     height    : 906,
     width     : 700,
     offsetTop : 0
+  },
+
+  imageUrl: function(size){
+    size = (size || 'large');
+    var template = this.constructor.prototype.defaults.image;
+    template     = template.replace(/\{size\}/, size);
+    url          = template.replace(/\{page\}/, this.get('pageNumber'));
+    return url;
+  },
+
+  textUrl: function() {
+    var template = this.constructor.prototype.defaults.text;
+    return template.replace(/\{page\}/, this.get('pageNumber'));
   }
 });
 
