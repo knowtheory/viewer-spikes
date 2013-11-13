@@ -12771,7 +12771,8 @@ DC.view.Viewer = DC.Backbone.View.extend({
   },
   
   renderSubviews: function() {
-    this.$('.pages').append(this.pages.render().el);
+    this.pages.setElement(this.$('.pages'));
+    this.pages.render();
   },
   
   setDocument: function(data) {
@@ -12787,8 +12788,23 @@ DC.view.Viewer = DC.Backbone.View.extend({
 
 DC.view.PageList = DC.Backbone.View.extend({
   className: 'pages',
+
+  initialize: function(options) {
+  },
+  
   render: function() {
-    this.$el.html( this.collection.map( function( model ){ return JST['page']({ page: model.toJSON() }); } ) );
+    this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } ) ;
+    this.$el.html( DC._.map(this.pageViews, function(view){ return view.render().el; }) );
+    this.$el.append('<div class="footer"></div>')
     return this;
   }
 });
+
+DC.view.Page = DC.Backbone.View.extend({
+  className: 'page_container',
+  render: function() {
+    this.$el.html(JST['page']({ page: this.model.toJSON() }));
+    return this;
+  }
+});
+
