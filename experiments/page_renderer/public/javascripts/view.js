@@ -42,7 +42,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   render: function() {
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } ) ;
     this.$el.html( DC._.map(this.pageViews, function(view){ return view.render().el; }) );
-    this.$el.append('<div class="footer"></div>')
     return this;
   }
 });
