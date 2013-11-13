@@ -11,7 +11,8 @@
 .pages {
   width: inherit;
   height: inherit;
-  overflow:auto;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   max-height: 3000px;
 }
 
