@@ -24,7 +24,11 @@
   margin-left: 45px;
 }
 
-.pages .page img { width: inherit; height: inherit; }
+.pages .page img { 
+  width: inherit; 
+  height: inherit;
+  background: center url(../images/spinner_circle.gif?1361646239) no-repeat;
+}
 
 .footer {
   position:absolute;
