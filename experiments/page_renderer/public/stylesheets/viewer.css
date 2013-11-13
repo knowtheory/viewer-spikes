@@ -24,6 +24,8 @@
   margin-left: 45px;
 }
 
+.pages .page img { width: inherit; height: inherit; }
+
 .footer {
   position:absolute;
   bottom:-3px;

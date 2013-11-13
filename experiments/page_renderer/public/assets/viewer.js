@@ -12817,7 +12817,11 @@ DC.view.Page = DC.Backbone.View.extend({
   className: 'page_container',
   render: function() {
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
+    this.loadImage();
     return this;
+  },
+  loadImage: function() {
+    this.$('img').attr('src', this.model.imageUrl());
   }
 });
 
