@@ -1,4 +1,4 @@
-#viewer-container { height: 700px}
+#viewer-container { height: 1000px; width: 800px; }
 
 #viewer { height: inherit; }
 
