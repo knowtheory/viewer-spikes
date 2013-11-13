@@ -1,10 +1,6 @@
-#viewer {
-  width: 800px;
-  height: 70%;
-  max-height: 10000px;
-  background-color: red;
-  border:thin solid #c00;
-}
+#viewer-container { height: 700px}
+
+#viewer { height: inherit; }
 
 .page_matte {
   width: inherit;
@@ -15,13 +11,8 @@
 .pages {
   width: inherit;
   height: inherit;
-  top:0px;
-  bottom: 40px;
-  /*position: absolute;
-  overflow: scroll;*/
-  background-color: grey;
-  border:medium dashed #c00;    
   overflow:auto;
+  max-height: 3000px;
 }
 
 .pages .page_number { float: left; }
@@ -32,12 +23,11 @@
   margin-left: 45px;
 }
 
-
 .footer {
   position:absolute;
   bottom:-3px;
   width: 100%;
   height:50px;
-  background-color:rgba(0,0,0,0.8);
+  background-color:rgba(50,0,0,0.4);
   color:#fff;
 }
