@@ -2,7 +2,7 @@ DC.view.Viewer = DC.Backbone.View.extend({
   className: 'viewer',
   
   initialize: function(options) {
-    console.log('new viewer');
+    //console.log('new viewer');
     this.model = (options.model || new DC.model.Document());
     this.createSubviews();
   },
@@ -152,7 +152,7 @@ DC.view.Page = DC.Backbone.View.extend({
   },
 
   ensureAspectRatio: function() {
-    console.log("ensuring Aspect Ratio!");
+    //console.log("ensuring Aspect Ratio!");
     var previousHeight = this.$('.page').height();
     var width          = this.model.get('width');
     var height         = this.model.get('height');
