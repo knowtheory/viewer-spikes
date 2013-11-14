@@ -12813,7 +12813,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   initialize: function(options) {
     this.currentPageIndex = (this.currentPageIndex || 0);
-    this.throttledLoadVisiblePages = DC._.throttle(DC._.bind(this.loadVisiblePages, this), 100);
+    this.throttledLoadVisiblePages = DC._.throttle(DC._.bind(this.loadVisiblePages, this), 500);
   },
   
   events: { 'scroll': 'throttledLoadVisiblePages' },
