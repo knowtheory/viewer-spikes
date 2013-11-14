@@ -12728,7 +12728,8 @@ DC.model.Page = DC.Backbone.Model.extend({
   defaults: {
     height    : 906,
     width     : 700,
-    topOffset : 0
+    topOffset : 0,
+    imageLoaded: false
   },
   
   imageUrl: function(size){
@@ -12836,7 +12837,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     // (N.B. the +1 is for _.range which excludes the endpoint).
     var ceiling = (( this.currentPage + loadRange ) >= this.collection.size()) ? this.collection.size()+1 : (this.currentPage + loadRange);
     var range   = DC._.range(floor, ceiling);
-    this.loadPages(range);
+    this.loadPages(range, true);
   },
   
   identifyCurrentPage: function() {
@@ -12873,15 +12874,10 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   loadPages: function(pageNumbers) {
     //console.log(pageNumbers);
-    DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].load(); }, this);
-    // this will cause jitter in docs w/ non standard page sizes.
-    // to fix, track current position relative to current page, and then jump back
-    // to that location.
-    this.calculateOffsets();
-  },
-  
-  calculateOffsets: function() {
-    
+    //DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].load(); }, this);
+    DC._.each(this.pageViews, function(page){
+      (DC._.contains(pageNumbers, page.model.get('pageNumber'))) ? page.load() : page.unload();
+    });
   }
 });
 
@@ -12895,9 +12891,20 @@ DC.view.Page = DC.Backbone.View.extend({
     this.image = this.$('img');
     return this;
   },
+  isLoaded: function() {
+    return this.model.get('imageLoaded');
+  },
   load: function() {
+    if (this.isLoaded()) return;
+    //console.log("Loading", this.model.get('pageNumber'));
     this.image.attr('src', this.model.imageUrl());
     this.model.set('imageLoaded', true);
+  },
+  unload: function() {
+    if (!this.isLoaded()) return;
+    //console.log("Unloading", this.model.get('pageNumber'));
+    this.image.attr('src', '');
+    this.model.set('imageLoaded', false);
   },
   updateModel: function() {
     this.model.set({

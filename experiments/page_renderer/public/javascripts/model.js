@@ -35,7 +35,8 @@ DC.model.Page = DC.Backbone.Model.extend({
   defaults: {
     height    : 906,
     width     : 700,
-    topOffset : 0
+    topOffset : 0,
+    imageLoaded: false
   },
   
   imageUrl: function(size){
