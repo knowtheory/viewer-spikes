@@ -12817,8 +12817,8 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   loadVisiblePages: function(e){
     this.identifyCurrentPage();
-    var floor   = this.currentPage < 10                ? 1 : (this.currentPage - 10);
-    var ceiling = this.currentPage > this.collection.size() ? this.collection.size() : (this.currentPage + 10);
+    var floor   = ( this.currentPage <= 10 ) ? 1 : ( this.currentPage - 10 );
+    var ceiling = ( this.currentPage + 10 ) > this.collection.size() ? this.collection.size() : (this.currentPage + 10);
     var range   = DC._.range(floor, ceiling);
     this.loadPages(range);
   },
@@ -12831,17 +12831,6 @@ DC.view.PageList = DC.Backbone.View.extend({
     // compared to the visible container
     var visiblePages = DC._.filter(this.pageViews, this.isPageVisible, this);
     
-    // A bunch of debugging code to dump 
-    console.log(DC._.map(visiblePages, function(page){ 
-      var pageHeight = page.$el.height();
-      var pageWidth  = page.$el.width();
-      // offsets relative to parent container
-      var pageTop    = page.$el.offset().top;
-      var pageBottom = pageTop + pageHeight;
-
-      //console.log(page.model.get('pageNumber'), pageTop, pageBottom);
-      return page.model.get('pageNumber');
-    }));
     var middleId = Math.floor(visiblePages.length / 2);
     this.currentPage = visiblePages[middleId].model.get('pageNumber');
   },
@@ -12865,7 +12854,8 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].loadImage(); }, this);
+    console.log(pageNumbers);
+    DC._.each( pageNumbers, function(pageNumber){ if(!pageNumber){console.log("help!")}; this.pageViews[pageNumber-1].loadImage(); }, this);
     // this will cause jitter in docs w/ non standard page sizes.
     // to fix, track current position relative to current page, and then jump back
     // to that location.
