@@ -36,6 +36,12 @@ DC.view.Viewer = DC.Backbone.View.extend({
 DC.view.PageList = DC.Backbone.View.extend({
   className: 'pages',
   
+  jump: function(pageNumber) {
+    var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
+    var jumpOffset = page.$el.offset().top;
+    this.$el.scrollTop(jumpOffset);
+  },
+  
   initialize: function(options) {
     this.currentPageIndex = (this.currentPageIndex || 0);
     this.throttledLoadVisiblePages = DC._.throttle(DC._.bind(this.loadVisiblePages, this), 100);
@@ -98,7 +104,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   loadPages: function(pageNumbers) {
     //console.log(pageNumbers);
-    DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].loadImage(); }, this);
+    DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].load(); }, this);
     // this will cause jitter in docs w/ non standard page sizes.
     // to fix, track current position relative to current page, and then jump back
     // to that location.
@@ -120,7 +126,7 @@ DC.view.Page = DC.Backbone.View.extend({
     this.image = this.$('img');
     return this;
   },
-  loadImage: function() {
+  load: function() {
     this.image.attr('src', this.model.imageUrl());
     this.model.set('imageLoaded', true);
   },
