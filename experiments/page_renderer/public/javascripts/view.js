@@ -30,6 +30,7 @@ DC.view.Viewer = DC.Backbone.View.extend({
   load: function(data) {
     this.setDocument(data);
     this.render();
+    this.pages.loadVisiblePages();
   }
 });
 
@@ -46,8 +47,8 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   initialize: function(options) {
-    this.currentPageIndex = (this.currentPageIndex || 0);
-    this.throttledLoadVisiblePages = DC._.throttle(DC._.bind(this.loadVisiblePages, this), 500);
+    this.loadVisiblePages = DC._.bind(this.loadVisiblePages, this);
+    this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, 500);
   },
   
   events: { 'scroll': 'throttledLoadVisiblePages' },
@@ -107,18 +108,14 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   loadPages: function(pageNumbers) {
     //console.log(pageNumbers);
-    //DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].load(); }, this);
     DC._.each(this.pageViews, function(page){
-      (DC._.contains(pageNumbers, page.model.get('pageNumber'))) ? page.load() : page.unload();
+      DC._.contains(pageNumbers, page.model.get('pageNumber')) ? page.load() : page.unload();
     });
   }
 });
 
 DC.view.Page = DC.Backbone.View.extend({
   className: 'page_container',
-  events: {
-    'onLoad img': 'updateModel'
-  },
   render: function() {
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
     this.image = this.$('img');
