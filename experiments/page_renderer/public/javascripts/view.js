@@ -116,31 +116,50 @@ DC.view.PageList = DC.Backbone.View.extend({
 
 DC.view.Page = DC.Backbone.View.extend({
   className: 'page_container',
+  initialize: function(options) {
+    // Debounce ensureAspectRatio, because we want to listen for changes
+    // to both heigth and width, but only fire once if both have been set.
+    this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
+    this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
+    
+    this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
+    this.listenTo(this.model, 'change:width', this.ensureAspectRatio);
+  },
+
   render: function() {
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
     this.image = this.$('img');
     return this;
   },
+
   isLoaded: function() {
     return this.model.get('imageLoaded');
   },
+
   load: function() {
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
     this.image.attr('src', this.model.imageUrl());
+    this.image.load(this.cacheNaturalDimensions);
     this.model.set('imageLoaded', true);
   },
+
   unload: function() {
     if (!this.isLoaded()) return;
     //console.log("Unloading", this.model.get('pageNumber'));
     this.image.attr('src', '');
     this.model.set('imageLoaded', false);
   },
-  updateModel: function() {
-    this.model.set({
-      height: this.image.height(),
-      width:  this.image.width()
-    });
+
+  ensureAspectRatio: function() {
+    console.log("ensureAspectRatio");
+  },
+
+  cacheNaturalDimensions: function() {
+    var unstyledImage = DC.$(new Image());
+    var model = this.model;
+    unstyledImage.load(function(){ model.set({ height: this.height, width:  this.width }); });
+    unstyledImage.attr('src', model.imageUrl());
   }
 });
 
