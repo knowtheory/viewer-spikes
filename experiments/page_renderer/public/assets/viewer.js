@@ -12817,8 +12817,15 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   loadVisiblePages: function(e){
     this.identifyCurrentPage();
-    var floor   = ( this.currentPage <= 10 ) ? 1 : ( this.currentPage - 10 );
-    var ceiling = ( this.currentPage + 10 ) > this.collection.size() ? this.collection.size() : (this.currentPage + 10);
+
+    var loadRange = 10;
+    // the floor should be the pages to be loaded above the current page
+    // unless current page is smaller than that range
+    var floor   = ( this.currentPage <= loadRange ) ? 1 : ( this.currentPage - loadRange );
+    // Likewise, the ceiling should be the pages below the current page to be loaded.
+    // When scrolling to the end of the document, ensure ceiling is capped at the page count + 1 
+    // (N.B. the +1 is for _.range which excludes the endpoint).
+    var ceiling = (( this.currentPage + loadRange ) >= this.collection.size()) ? this.collection.size()+1 : (this.currentPage + loadRange);
     var range   = DC._.range(floor, ceiling);
     this.loadPages(range);
   },
@@ -12833,6 +12840,8 @@ DC.view.PageList = DC.Backbone.View.extend({
     
     var middleId = Math.floor(visiblePages.length / 2);
     this.currentPage = visiblePages[middleId].model.get('pageNumber');
+    //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
+    //console.log(this.currentPage);
   },
   
   isPageVisible: function(page) {
@@ -12854,8 +12863,8 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    console.log(pageNumbers);
-    DC._.each( pageNumbers, function(pageNumber){ if(!pageNumber){console.log("help!")}; this.pageViews[pageNumber-1].loadImage(); }, this);
+    //console.log(pageNumbers);
+    DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].loadImage(); }, this);
     // this will cause jitter in docs w/ non standard page sizes.
     // to fix, track current position relative to current page, and then jump back
     // to that location.
