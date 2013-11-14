@@ -12804,8 +12804,11 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   jump: function(pageNumber) {
     var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
-    var jumpOffset = page.$el.offset().top;
-    this.$el.scrollTop(jumpOffset);
+    if (!page) return NaN;
+    var jumpOffset = this.$el.scrollTop() + page.$el.offset().top;
+    var fudge = 10;
+    this.$el.scrollTop(jumpOffset - fudge);
+    return jumpOffset;
   },
   
   initialize: function(options) {
