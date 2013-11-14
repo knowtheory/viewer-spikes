@@ -139,9 +139,12 @@ DC.view.Page = DC.Backbone.View.extend({
   load: function() {
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
+    
     this.image.attr('src', this.model.imageUrl());
     this.image.load(this.cacheNaturalDimensions);
-    this.model.set('imageLoaded', true);
+    var attrs = {'imageLoaded': true};
+    if (!this.model.get('hasRealDimensions')) { attrs['hasRealDimensions'] = true; }
+    this.model.set(attrs);
   },
 
   unload: function() {
@@ -150,13 +153,17 @@ DC.view.Page = DC.Backbone.View.extend({
     this.image.attr('src', '');
     this.model.set('imageLoaded', false);
   },
+  
+  setImageDimensions: function(dimensions) {
+    var width  = dimensions.width;
+    var height = dimensions.height;
+    this.$('.page').attr('style', 'width: '+width+'; height: '+height+';' );
+    this.image.attr({ width: width, height: height });
+  },
 
   ensureAspectRatio: function() {
     //console.log("ensuring Aspect Ratio!");
-    var previousHeight = this.$('.page').height();
-    var width          = this.model.get('width');
-    var height         = this.model.get('height');
-    this.$('.page').attr('style', "width:"+width+"; height:"+height+";");
+    this.setImageDimensions(this.model.constrainedDimensions(700));
   },
 
   cacheNaturalDimensions: function() {

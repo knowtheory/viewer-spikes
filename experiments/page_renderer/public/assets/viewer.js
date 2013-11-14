@@ -12729,7 +12729,8 @@ DC.model.Page = DC.Backbone.Model.extend({
     height    : 906,
     width     : 700,
     topOffset : 0,
-    imageLoaded: false
+    imageLoaded: false,
+    hasRealDimensions: false
   },
   
   imageUrl: function(size){
@@ -12745,7 +12746,22 @@ DC.model.Page = DC.Backbone.Model.extend({
     return template.replace(/\{page\}/, this.get('pageNumber'));
   },
   
-  orientation: function() { return (height > width ? 'portrait' : 'landscape'); }
+  orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
+  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
+  
+  constrainedDimensions: function(limit, constrained_edge) {
+    constrained_edge = (constrained_edge || 'width');
+    if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
+    if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
+    var other_edge = (constrained_edge == 'width' ? 'height' : 'width');
+    var dimensions = this.naturalDimensions();
+    var scale = dimensions[constrained_edge] / limit; // smaller than 1 when limit is larger; greater than 1 when limit is smaller.
+    dimensions[constrained_edge] = limit;
+    dimensions[other_edge] = Math.floor(dimensions[other_edge] / scale);
+    return dimensions;
+  }
+  
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
@@ -12908,9 +12924,12 @@ DC.view.Page = DC.Backbone.View.extend({
   load: function() {
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
+    
     this.image.attr('src', this.model.imageUrl());
     this.image.load(this.cacheNaturalDimensions);
-    this.model.set('imageLoaded', true);
+    var attrs = {'imageLoaded': true};
+    if (!this.model.get('hasRealDimensions')) { attrs['hasRealDimensions'] = true; }
+    this.model.set(attrs);
   },
 
   unload: function() {
@@ -12919,13 +12938,17 @@ DC.view.Page = DC.Backbone.View.extend({
     this.image.attr('src', '');
     this.model.set('imageLoaded', false);
   },
+  
+  setImageDimensions: function(dimensions) {
+    var width  = dimensions.width;
+    var height = dimensions.height;
+    this.$('.page').attr('style', 'width: '+width+'; height: '+height+';' );
+    this.image.attr({ width: width, height: height });
+  },
 
   ensureAspectRatio: function() {
     //console.log("ensuring Aspect Ratio!");
-    var previousHeight = this.$('.page').height();
-    var width          = this.model.get('width');
-    var height         = this.model.get('height');
-    this.$('.page').attr('style', "width:"+width+"; height:"+height+";");
+    this.setImageDimensions(this.model.constrainedDimensions(700));
   },
 
   cacheNaturalDimensions: function() {
