@@ -152,7 +152,11 @@ DC.view.Page = DC.Backbone.View.extend({
   },
 
   ensureAspectRatio: function() {
-    console.log("ensureAspectRatio");
+    console.log("ensuring Aspect Ratio!");
+    var previousHeight = this.$('.page').height();
+    var width          = this.model.get('width');
+    var height         = this.model.get('height'));
+    this.$('.page').attr('style', "width:"+width+"; height:"+height+";";
   },
 
   cacheNaturalDimensions: function() {

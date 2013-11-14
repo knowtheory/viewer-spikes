@@ -50,7 +50,9 @@ DC.model.Page = DC.Backbone.Model.extend({
   textUrl: function() {
     var template = this.constructor.prototype.defaults.text;
     return template.replace(/\{page\}/, this.get('pageNumber'));
-  }
+  },
+  
+  orientation: function() { return (height > width ? 'portrait' : 'landscape'); }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({

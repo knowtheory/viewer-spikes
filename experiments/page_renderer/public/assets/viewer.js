@@ -12743,7 +12743,9 @@ DC.model.Page = DC.Backbone.Model.extend({
   textUrl: function() {
     var template = this.constructor.prototype.defaults.text;
     return template.replace(/\{page\}/, this.get('pageNumber'));
-  }
+  },
+  
+  orientation: function() { return (height > width ? 'portrait' : 'landscape'); }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
@@ -12919,7 +12921,11 @@ DC.view.Page = DC.Backbone.View.extend({
   },
 
   ensureAspectRatio: function() {
-    console.log("ensureAspectRatio");
+    console.log("ensuring Aspect Ratio!");
+    var previousHeight = this.$('.page').height();
+    var width          = this.model.get('width');
+    var height         = this.model.get('height'));
+    this.$('.page').attr('style', "width:"+width+"; height:"+height+";";
   },
 
   cacheNaturalDimensions: function() {
