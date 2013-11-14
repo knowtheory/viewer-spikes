@@ -12728,9 +12728,9 @@ DC.model.Page = DC.Backbone.Model.extend({
   defaults: {
     height    : 906,
     width     : 700,
-    offsetTop : 0
+    topOffset : 0
   },
-
+  
   imageUrl: function(size){
     size = (size || 'large');
     var template = this.constructor.prototype.defaults.image;
@@ -12751,8 +12751,7 @@ DC.model.PageSet = DC.Backbone.Collection.extend({
 {
   createPages: function(pageCount) {
     pageCount = (pageCount || 0);
-    var pageAttributes = DC._.map( DC._.range(0, pageCount), 
-                                   function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
+    var pageAttributes = DC._.map( DC._.range(0, pageCount), function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
     return new this(pageAttributes);
   }
 });
@@ -12825,22 +12824,48 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   identifyCurrentPage: function() {
+    var top    = this.$el.scrollTop();
+    var bottom = this.$el.height();
+    
+    var visiblePages = this.collection.filter(function(page){ 
+      var pageBottom = page.get('topOffset') + page.get('height');
+    });
+
     this.currentPage = 12;
   },
   
   loadPages: function(pageNumbers) {
     DC._.each( pageNumbers, function(pageNumber){ this.pageViews[pageNumber-1].loadImage(); }, this);
+    // this will cause jitter in docs w/ non standard page sizes.
+    // to fix, track current position relative to current page, and then jump back
+    // to that location.
+    this.calculateOffsets();
+  },
+  
+  calculateOffsets: function() {
+    
   }
 });
 
 DC.view.Page = DC.Backbone.View.extend({
   className: 'page_container',
+  events: {
+    'onLoad img': 'updateModel'
+  },
   render: function() {
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
+    this.image = this.$('img');
     return this;
   },
   loadImage: function() {
-    this.$('img').attr('src', this.model.imageUrl());
+    this.image.attr('src', this.model.imageUrl());
+    this.model.set('imageLoaded', true);
+  },
+  updateModel: function() {
+    this.model.set({
+      height: this.image.height(),
+      width:  this.image.width()
+    });
   }
 });
 

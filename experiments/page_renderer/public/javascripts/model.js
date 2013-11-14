@@ -35,9 +35,9 @@ DC.model.Page = DC.Backbone.Model.extend({
   defaults: {
     height    : 906,
     width     : 700,
-    offsetTop : 0
+    topOffset : 0
   },
-
+  
   imageUrl: function(size){
     size = (size || 'large');
     var template = this.constructor.prototype.defaults.image;
@@ -58,8 +58,7 @@ DC.model.PageSet = DC.Backbone.Collection.extend({
 {
   createPages: function(pageCount) {
     pageCount = (pageCount || 0);
-    var pageAttributes = DC._.map( DC._.range(0, pageCount), 
-                                   function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
+    var pageAttributes = DC._.map( DC._.range(0, pageCount), function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
     return new this(pageAttributes);
   }
 });
