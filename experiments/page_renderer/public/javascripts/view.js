@@ -157,8 +157,8 @@ DC.view.Page = DC.Backbone.View.extend({
   setImageDimensions: function(dimensions) {
     var width  = dimensions.width;
     var height = dimensions.height;
-    this.$('.page').attr('style', 'width: '+width+'; height: '+height+';' );
-    this.image.attr({ width: width, height: height });
+    this.$('.page').attr('style', 'width: '+width+'px; height: '+height+'px;' );
+    this.image.attr({ width: width + 'px', height: height + 'px' });
   },
 
   ensureAspectRatio: function() {
