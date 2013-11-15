@@ -62,7 +62,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   loadVisiblePages: function(e){
     this.identifyCurrentPage();
 
-    var loadRange = 10;
+    var loadRange = 5;
     // the floor should be the pages to be loaded above the current page
     // unless current page is smaller than that range
     var floor   = ( this.currentPage <= loadRange ) ? 1 : ( this.currentPage - loadRange );
@@ -107,7 +107,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    //console.log(pageNumbers);
+    console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
       DC._.contains(pageNumbers, page.model.get('pageNumber')) ? page.load() : page.unload();
     });
@@ -140,8 +140,13 @@ DC.view.Page = DC.Backbone.View.extend({
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
     
+    this.$('.page').html('<img></img>');
+    this.image = this.$('img');
     this.image.attr('src', this.model.imageUrl());
-    this.image.load(this.cacheNaturalDimensions);
+    this.image.load(DC._.bind(function(){
+      this.cacheNaturalDimensions();
+      this.ensureAspectRatio();
+    }, this));
     var attrs = {'imageLoaded': true};
     if (!this.model.get('hasRealDimensions')) { attrs['hasRealDimensions'] = true; }
     this.model.set(attrs);
@@ -150,7 +155,9 @@ DC.view.Page = DC.Backbone.View.extend({
   unload: function() {
     if (!this.isLoaded()) return;
     //console.log("Unloading", this.model.get('pageNumber'));
-    this.image.attr('src', '');
+    this.image = null;
+    this.$('.page').html('')
+    //this.image.attr('src', 'data:image/gif;base64,' + 'R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
     this.model.set('imageLoaded', false);
   },
   
