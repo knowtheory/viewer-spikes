@@ -2,8 +2,7 @@
 
 #viewer { height: inherit; }
 
-.page_matte {
-  width: inherit;
+.viewer { 
   height: inherit;
   position:relative;
 }
@@ -11,20 +10,37 @@
 .pages {
   width: inherit;
   height: inherit;
+  position:relative;
+  overflow: scroll;
+  margin: 0 auto;
+}
+
+.pages.zoom-50  { width: 50%; }
+.pages.zoom-66  { width: 66%; }
+.pages.zoom-75  { width: 75%; }
+.pages.zoom-100 { width: 100%; }
+.pages.zoom-125 { width: 125%; }
+.pages.zoom-133 { width: 133%; }
+.pages.zoom-150 { width: 150%; }
+
+.matte {
   overflow: scroll;
   -webkit-overflow-scrolling: touch;
   max-height: 3000px;
 }
 
-.pages .page_number { float: left; }
+.matte .page_container { width: inherit; }
 
-.pages .page {
+.matte .page_number { float: left; }
+
+.matte .page {
+  
   border: black 1px solid;
   margin:10px;
   margin-left: 45px;
 }
 
-.pages .page img { 
+.matte .page img { 
   background: center url('../images/spinner_circle.gif') no-repeat;
 }
 

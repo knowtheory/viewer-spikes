@@ -12804,7 +12804,7 @@ DC.view.Viewer = DC.Backbone.View.extend({
   },
   
   renderSubviews: function() {
-    this.pages.setElement(this.$('.pages'));
+    this.pages.setElement(this.$('.pages .matte'));
     this.pages.render();
   },
   
@@ -12821,7 +12821,7 @@ DC.view.Viewer = DC.Backbone.View.extend({
 });
 
 DC.view.PageList = DC.Backbone.View.extend({
-  className: 'pages',
+  className: 'matte',
   
   jump: function(pageNumber) {
     var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
@@ -12841,7 +12841,7 @@ DC.view.PageList = DC.Backbone.View.extend({
 
   render: function() {
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } ) ;
-    this.$el.html( DC._.map(this.pageViews, function(view){ return view.render().el; }) );
+    this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     return this;
   },
   
@@ -12942,7 +12942,7 @@ DC.view.Page = DC.Backbone.View.extend({
     if (!this.isLoaded()) return;
     //console.log("Unloading", this.model.get('pageNumber'));
     this.image = null;
-    this.$('.page').html('')
+    this.$('.page').html('');
     //this.image.attr('src', 'data:image/gif;base64,' + 'R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
     this.model.set('imageLoaded', false);
   },
