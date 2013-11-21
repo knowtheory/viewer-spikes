@@ -45,7 +45,7 @@ DC.model.Page = DC.Backbone.Model.extend({
   },
   
   imageUrl: function(size){
-    size = (size || 'large');
+    size = (size || 'normal');
     var template = this.constructor.prototype.defaults.image;
     template     = template.replace(/\{size\}/, size);
     url          = template.replace(/\{page\}/, this.get('pageNumber'));
