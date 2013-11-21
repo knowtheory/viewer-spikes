@@ -1,46 +1,41 @@
-#viewer-container { height: 800px; width: 800px; }
-
-#viewer { height: inherit; }
-
 .viewer { 
   height: inherit;
-  position:relative;
+  position: relative;
 }
 
-.pages {
+.matte {
   width: inherit;
   height: inherit;
-  position:relative;
+  position: relative;
   overflow: scroll;
   margin: 0 auto;
 }
 
-.pages.zoom-50  { width: 50%; }
-.pages.zoom-66  { width: 66%; }
-.pages.zoom-75  { width: 75%; }
-.pages.zoom-100 { width: 100%; }
-.pages.zoom-125 { width: 125%; }
-.pages.zoom-133 { width: 133%; }
-.pages.zoom-150 { width: 150%; }
+.matte.zoom-50  { width: 50%; }
+.matte.zoom-66  { width: 66%; }
+.matte.zoom-75  { width: 75%; }
+.matte.zoom-100 { width: 100%; }
+.matte.zoom-125 { width: 125%; }
+.matte.zoom-133 { width: 133%; }
+.matte.zoom-150 { width: 150%; }
 
-.matte {
-  overflow: scroll;
+.pages {
   -webkit-overflow-scrolling: touch;
   max-height: 3000px;
 }
 
-.matte .page_container { width: inherit; }
+.pages .page_container { width: inherit; }
 
-.matte .page_number { float: left; }
+.pages .page_number { float: left; }
 
-.matte .page {
+.pages .page {
   
   border: black 1px solid;
   margin:10px;
   margin-left: 45px;
 }
 
-.matte .page img { 
+.pages .page img { 
   background: center url('../images/spinner_circle.gif') no-repeat;
 }
 

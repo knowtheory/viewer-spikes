@@ -12,9 +12,13 @@ DC.model.Document = DC.Backbone.Model.extend({
     // Reactive behavior.  When a document's attributes are set
     // propogate the data down into child collections and objects.
     // Current behavior will simply overwrite existing data.
-    this.on( 'change:annotations', function( model, note_data ){ this.notes.reset(note_data); }, this );
+    this.on( 'change:annotations', function( model, note_data ){    this.notes.reset(note_data); }, this );
     this.on( 'change:sections',    function( model, section_data ){ this.sections.reset(section_data); }, this );
-    this.on( 'change:pages',       function( model, pageCount ){ this.pages = DC.model.PageSet.createPages(pageCount); }, this);
+    this.on( 'change:pages',       function( model, pageCount ){
+      var pageAttributes = DC._.map( DC._.range(0, pageCount), function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
+      this.pages.set(pageAttributes);
+      this.pages.trigger('reset');
+    }, this);
     this.on( 'change:resources',   function( model, resource_data ){ 
       this.resources.set(resource_data);
       DC._.extend(DC.model.Page.prototype.defaults, this.resources.get('page'));

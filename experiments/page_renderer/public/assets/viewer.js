@@ -12706,9 +12706,13 @@ DC.model.Document = DC.Backbone.Model.extend({
     // Reactive behavior.  When a document's attributes are set
     // propogate the data down into child collections and objects.
     // Current behavior will simply overwrite existing data.
-    this.on( 'change:annotations', function( model, note_data ){ this.notes.reset(note_data); }, this );
+    this.on( 'change:annotations', function( model, note_data ){    this.notes.reset(note_data); }, this );
     this.on( 'change:sections',    function( model, section_data ){ this.sections.reset(section_data); }, this );
-    this.on( 'change:pages',       function( model, pageCount ){ this.pages = DC.model.PageSet.createPages(pageCount); }, this);
+    this.on( 'change:pages',       function( model, pageCount ){
+      var pageAttributes = DC._.map( DC._.range(0, pageCount), function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
+      this.pages.set(pageAttributes);
+      this.pages.trigger('reset');
+    }, this);
     this.on( 'change:resources',   function( model, resource_data ){ 
       this.resources.set(resource_data);
       DC._.extend(DC.model.Page.prototype.defaults, this.resources.get('page'));
@@ -12794,17 +12798,18 @@ DC.view.Viewer = DC.Backbone.View.extend({
   },
   
   createSubviews: function() {
-    this.pages = new DC.view.PageList();
+    this.pages = new DC.view.PageList({collection: this.model.pages});
   },
   
   render: function() {
+    this.$el.attr('style', 'height: inherit');
     this.$el.html(JST['viewer']({ document: this.model }));
     this.renderSubviews();
     return this;
   },
   
   renderSubviews: function() {
-    this.pages.setElement(this.$('.pages .matte'));
+    this.pages.setElement(this.$('.matte'));
     this.pages.render();
   },
   
@@ -12835,13 +12840,18 @@ DC.view.PageList = DC.Backbone.View.extend({
   initialize: function(options) {
     this.loadVisiblePages = DC._.bind(this.loadVisiblePages, this);
     this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, 500);
+    this.listenTo(this.collection, 'reset', this.initializeSubviews);
+  },
+  
+  initializeSubviews: function() {
+    this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
   },
   
   events: { 'scroll': 'throttledLoadVisiblePages' },
 
   render: function() {
-    this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } ) ;
-    this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
+    //if (!this.pageViews) { this.initializeSubviews(); }
+    this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     return this;
   },
   
@@ -12867,11 +12877,13 @@ DC.view.PageList = DC.Backbone.View.extend({
     // Calculate which pages are visible based their height/offset
     // compared to the visible container
     var visiblePages = DC._.filter(this.pageViews, this.isPageVisible, this);
-    
-    var middleId = Math.floor(visiblePages.length / 2);
-    this.currentPage = visiblePages[middleId].model.get('pageNumber');
-    //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
-    //console.log(this.currentPage);
+
+    if (visiblePages.length > 0) {
+      var middleId = Math.floor(visiblePages.length / 2);
+      this.currentPage = visiblePages[middleId].model.get('pageNumber');
+      //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
+      //console.log(this.currentPage);
+    }
   },
   
   isPageVisible: function(page) {
