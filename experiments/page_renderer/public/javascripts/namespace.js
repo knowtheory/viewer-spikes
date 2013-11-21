@@ -1,6 +1,7 @@
 DC = {
   model: {},
-  view:  {}
+  view:  {},
+  lib:   {}
 };
 DC.Backbone = Backbone.noConflict();
 DC._        = _.noConflict();

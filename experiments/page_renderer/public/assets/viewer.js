@@ -12684,7 +12684,8 @@ if ( typeof module === "object" && module && typeof module.exports === "object" 
 
 DC = {
   model: {},
-  view:  {}
+  view:  {},
+  lib:   {}
 };
 DC.Backbone = Backbone.noConflict();
 DC._        = _.noConflict();
