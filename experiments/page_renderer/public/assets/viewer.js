@@ -12838,8 +12838,11 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   initialize: function(options) {
-    this.loadVisiblePages = DC._.bind(this.loadVisiblePages, this);
+    this.loadVisiblePages          = DC._.bind(this.loadVisiblePages, this);
     this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, 500);
+    
+    this.matteHeight = 0;
+    this.initializeSubviews();
     this.listenTo(this.collection, 'reset', this.initializeSubviews);
   },
   
@@ -12850,7 +12853,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   events: { 'scroll': 'throttledLoadVisiblePages' },
 
   render: function() {
-    //if (!this.pageViews) { this.initializeSubviews(); }
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     return this;
   },
@@ -12977,5 +12979,6 @@ DC.view.Page = DC.Backbone.View.extend({
     unstyledImage.load(function(){ model.set({ height: this.height, width:  this.width }); });
     unstyledImage.attr('src', model.imageUrl());
   }
+  
 });
 

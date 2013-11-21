@@ -1,6 +1,7 @@
 .viewer { 
   height: inherit;
   position: relative;
+  border: 1px dotted red;
 }
 
 .matte {
@@ -24,7 +25,7 @@
   max-height: 3000px;
 }
 
-.pages .page_container { width: inherit; }
+.pages .page_container { width: 100%; }
 
 .pages .page_number { float: left; }
 
