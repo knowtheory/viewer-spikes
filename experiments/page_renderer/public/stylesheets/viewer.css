@@ -1,7 +1,3 @@
-* {
-  margin: 0;
-  padding: 0; }
-
 #viewer-container { height: 800px; width: 800px; }
 
 #viewer { height: inherit; }
