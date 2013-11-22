@@ -98,7 +98,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   */
   
   loadVisiblePages: function(e){
-    console.log(this.height());
+    //console.log(this.height());
     this.identifyCurrentPage();
 
     var loadRange = 5;
@@ -148,7 +148,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    //console.log(pageNumbers, DC.$('img').size());
+    console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
       DC._.contains(pageNumbers, page.model.get('pageNumber')) ? page.load() : page.unload();
     });

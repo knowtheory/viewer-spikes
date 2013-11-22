@@ -10,6 +10,7 @@
   position: relative;
   overflow: scroll;
   margin: 0 auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .matte.zoom-50  { width: 50%; }
@@ -21,7 +22,6 @@
 .matte.zoom-150 { width: 150%; }
 
 .pages {
-  -webkit-overflow-scrolling: touch;
   max-height: 3000px;
 }
 
