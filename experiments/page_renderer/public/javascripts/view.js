@@ -156,7 +156,7 @@ DC.view.PageList = DC.Backbone.View.extend({
 });
 
 DC.view.Page = DC.Backbone.View.extend({
-  className: 'page_container',
+  className: 'page',
   initialize: function(options) {
     // Debounce ensureAspectRatio, because we want to listen for changes
     // to both heigth and width, but only fire once if both have been set.
