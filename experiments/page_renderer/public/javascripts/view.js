@@ -200,7 +200,7 @@ DC.view.Page = DC.Backbone.View.extend({
     if (!this.isLoaded()) return;
     //console.log("Unloading", this.model.get('pageNumber'));
     this.image = null;
-    this.$('.page').html('');
+    this.$('.matte').html('');
     //this.image.attr('src', 'data:image/gif;base64,' + 'R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
     this.model.set('imageLoaded', false);
   },
@@ -208,7 +208,7 @@ DC.view.Page = DC.Backbone.View.extend({
   setImageDimensions: function(dimensions) {
     var width  = dimensions.width;
     var height = dimensions.height;
-    this.$('.page').attr('style', 'width: '+width+'px; height: '+height+'px;' );
+    this.$('.matte').attr('style', 'width: '+width+'px; height: '+height+'px;' );
     this.image.attr({ width: width + 'px', height: height + 'px' });
   },
 
