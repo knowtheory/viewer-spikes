@@ -10,6 +10,7 @@ javascripts:
     - public/javascripts/namespace.js
     - public/javascripts/model.js
     - public/javascripts/view.js
+    - public/javascripts/views/*.js
     
   debugger:
     - public/javascripts/debug.js
