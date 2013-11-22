@@ -25,14 +25,15 @@
   max-height: 3000px;
 }
 
-.pages .page_container { width: 100%; }
+.pages .page_container { 
+  width: 100%; 
+  /*position: absolute;*/
+}
 
 .pages .page_number { float: left; }
 
 .pages .page {
-  
   border: black 1px solid;
-  margin:10px;
   margin-left: 45px;
 }
 

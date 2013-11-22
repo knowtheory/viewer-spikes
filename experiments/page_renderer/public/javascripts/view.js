@@ -53,21 +53,42 @@ DC.view.PageList = DC.Backbone.View.extend({
     
     this.matteHeight = 0;
     this.initializeSubviews();
-    this.listenTo(this.collection, 'reset', this.initializeSubviews);
+
+    this.listenTo(this.collection, 'reset', this.rebuild);
   },
   
   initializeSubviews: function() {
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
+    this.matteHeight = this.height();
   },
   
   events: { 'scroll': 'throttledLoadVisiblePages' },
-
+  
+  rebuild: function() {
+    this.initializeSubviews();
+    this.render();
+  },
+  
   render: function() {
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
+    //this.$('.pages').css({'padding-top': this.matteHeight});
     return this;
   },
   
+  calculateOffsets: function() {
+    this.pageViews
+  },
+  
+  height: function() {
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, 0, this);
+  },
+  
+  /*
+   Old!
+  */
+  
   loadVisiblePages: function(e){
+    console.log(this.height());
     this.identifyCurrentPage();
 
     var loadRange = 5;
@@ -117,7 +138,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    console.log(pageNumbers, DC.$('img').size());
+    //console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
       DC._.contains(pageNumbers, page.model.get('pageNumber')) ? page.load() : page.unload();
     });
@@ -140,6 +161,10 @@ DC.view.Page = DC.Backbone.View.extend({
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
     this.image = this.$('img');
     return this;
+  },
+  
+  height: function() {
+    return this.model.get('height');
   },
 
   isLoaded: function() {
