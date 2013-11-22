@@ -156,6 +156,7 @@ DC.view.PageList = DC.Backbone.View.extend({
 });
 
 DC.view.Page = DC.Backbone.View.extend({
+  margin:    10,
   className: 'page',
   initialize: function(options) {
     // Debounce ensureAspectRatio, because we want to listen for changes
@@ -174,7 +175,7 @@ DC.view.Page = DC.Backbone.View.extend({
   },
   
   height: function() {
-    return this.model.get('height');
+    return this.model.get('height') + this.margin*2;
   },
 
   isLoaded: function() {
@@ -185,14 +186,15 @@ DC.view.Page = DC.Backbone.View.extend({
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
     
-    this.render();
+    this.$('.matte').html('<img></img>');
+    this.image = this.$('img');
     this.image.attr('src', this.model.imageUrl());
     this.image.load(DC._.bind(function(){
       this.cacheNaturalDimensions();
       this.ensureAspectRatio();
     }, this));
     var attrs = {'imageLoaded': true};
-    if (!this.model.get('hasRealDimensions')) { attrs['hasRealDimensions'] = true; }
+    if (!this.model.get('hasRealDimensions')) { attrs.hasRealDimensions = true; }
     this.model.set(attrs);
   },
 
@@ -208,8 +210,8 @@ DC.view.Page = DC.Backbone.View.extend({
   setImageDimensions: function(dimensions) {
     var width  = dimensions.width;
     var height = dimensions.height;
-    this.$('.matte').attr('style', 'width: '+width+'px; height: '+height+'px;' );
-    this.image.attr({ width: width + 'px', height: height + 'px' });
+    //this.$('.matte').attr('style', 'width: '+width+'px; height: '+height+'px;' );
+    //this.image.attr({ width: width + 'px', height: height + 'px' });
   },
 
   ensureAspectRatio: function() {
