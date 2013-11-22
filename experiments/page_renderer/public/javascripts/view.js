@@ -59,10 +59,28 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   initializeSubviews: function() {
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
+    DC._.each(this.pageViews, function(page){
+      this.listenTo(page, 'resize', function(heightDifference){
+        if (heightDifference > 0) { 
+          this.calculatePositions();
+          this.placePages();
+          this.resizeBackdrop(heightDifference);
+          var offset = this.$el.scrollTop() - heightDifference;
+          this.$el.scrollTop(offset);
+        }
+      });
+    }, this);
     this.matteHeight = this.height();
   },
   
   events: { 'scroll': 'throttledLoadVisiblePages' },
+  
+  // ToDo: make this smarter, and just have it subtract the difference
+  // from the existing height, rather than recounting all the page heights.
+  resizeBackdrop: function(difference) {
+    this.matteHeight = this.height();
+    this.$('.pages').css({'padding-top': this.matteHeight});
+  },
   
   rebuild: function() {
     this.initializeSubviews();
@@ -71,7 +89,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   render: function() {
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
-    this.$('.pages').css({'padding-top': this.matteHeight});
+    this.resizeBackdrop();
     this.calculatePositions();
     this.placePages();
     return this;
@@ -82,10 +100,10 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   calculatePositions: function() {
-    return DC._.reduce(this.pageViews, function(matteHeight, page){
-      var dimensions = { top: matteHeight, 'padding-top': page.height() };
+    return DC._.reduce(this.pageViews, function(backdropHeight, page){
+      var dimensions = { top: backdropHeight }; //, 'padding-top': page.height() };
       page.dimensions = dimensions;
-      return matteHeight + page.height();
+      return backdropHeight + page.height();
     }, 0);
   },
   
@@ -165,7 +183,7 @@ DC.view.Page = DC.Backbone.View.extend({
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
     this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
-    this.listenTo(this.model, 'change:width', this.ensureAspectRatio);
+    this.listenTo(this.model, 'change:width',  this.ensureAspectRatio);
   },
 
   render: function() {
@@ -192,10 +210,10 @@ DC.view.Page = DC.Backbone.View.extend({
     this.image.load(DC._.bind(function(){
       this.cacheNaturalDimensions();
       this.ensureAspectRatio();
+      var attrs = {'imageLoaded': true};
+      if (!this.model.get('hasRealDimensions')) { attrs.hasRealDimensions = true; }
+      this.model.set(attrs);
     }, this));
-    var attrs = {'imageLoaded': true};
-    if (!this.model.get('hasRealDimensions')) { attrs.hasRealDimensions = true; }
-    this.model.set(attrs);
   },
 
   unload: function() {
@@ -208,9 +226,13 @@ DC.view.Page = DC.Backbone.View.extend({
   },
   
   setImageDimensions: function(dimensions) {
-    var width  = dimensions.width;
-    var height = dimensions.height;
-    //this.$('.matte').attr('style', 'width: '+width+'px; height: '+height+'px;' );
+    var intendedWidth    = dimensions.width;
+    var intendedHeight   = dimensions.height;
+    var currentHeight    = this.$('.matte').height();
+    var heightDifference = currentHeight - intendedHeight;
+
+    this.$('.matte').attr('style', 'width: '+intendedWidth+'px; height: '+intendedHeight+'px;' );
+    if (heightDifference !== 0) { this.trigger('resize', heightDifference); }
     //this.image.attr({ width: width + 'px', height: height + 'px' });
   },
 
@@ -222,7 +244,11 @@ DC.view.Page = DC.Backbone.View.extend({
   cacheNaturalDimensions: function() {
     var unstyledImage = DC.$(new Image());
     var model = this.model;
-    unstyledImage.load(function(){ model.set({ height: this.height, width:  this.width }); });
+    unstyledImage.load(function(){ 
+      if ( model.get('height') != this.height || model.get('width') != this.width ) {
+        model.set({ height: this.height, width:  this.width });
+      }
+    });
     unstyledImage.attr('src', model.imageUrl());
   }
   
