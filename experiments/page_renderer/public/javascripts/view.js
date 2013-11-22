@@ -65,8 +65,14 @@ DC.view.PageList = DC.Backbone.View.extend({
           this.calculatePositions();
           this.placePages();
           this.resizeBackdrop(heightDifference);
-          var offset = this.$el.scrollTop() - heightDifference;
-          this.$el.scrollTop(offset);
+
+          // Rethink repositioning scrollTop:
+          // If a page ABOVE current scroll position changes,
+          // then offset needs to be updated when the buffer size changes.
+          // If the current page has yet to load, then no jumping is needed,
+          // because only pages below the current page are adjusted.
+          //var offset = this.$el.scrollTop() - heightDifference;
+          //this.$el.scrollTop(offset);
         }
       });
     }, this);
