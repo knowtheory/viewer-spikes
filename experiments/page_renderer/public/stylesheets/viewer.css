@@ -39,6 +39,7 @@
 
 .pages .matte img { 
   background: center url('../images/spinner_circle.gif') no-repeat;
+  pointer-events: none;
 }
 
 .footer {
