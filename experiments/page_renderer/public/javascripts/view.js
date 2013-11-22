@@ -19,7 +19,7 @@ DC.view.Viewer = DC.Backbone.View.extend({
   },
   
   renderSubviews: function() {
-    this.pages.setElement(this.$('.matte'));
+    this.pages.setElement(this.$('.backdrop'));
     this.pages.render();
   },
   
@@ -36,7 +36,7 @@ DC.view.Viewer = DC.Backbone.View.extend({
 });
 
 DC.view.PageList = DC.Backbone.View.extend({
-  className: 'matte',
+  className: 'backdrop',
   
   jump: function(pageNumber) {
     var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
@@ -72,7 +72,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   render: function() {
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.$('.pages').css({'padding-top': this.matteHeight});
-    this.calculatePositions()
+    this.calculatePositions();
     this.placePages();
     return this;
   },
@@ -84,7 +84,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   calculatePositions: function() {
     return DC._.reduce(this.pageViews, function(matteHeight, page){
       var dimensions = { top: matteHeight, 'padding-top': page.height() };
-      page.dimensions = dimensions
+      page.dimensions = dimensions;
       return matteHeight + page.height();
     }, 0);
   },
@@ -94,7 +94,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   /*
-   Old!
+   Old! but still all works!
   */
   
   loadVisiblePages: function(e){
@@ -150,7 +150,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   loadPages: function(pageNumbers) {
     console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
-      DC._.contains(pageNumbers, page.model.get('pageNumber')) ? page.load() : page.unload();
+      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
     });
   }
 });

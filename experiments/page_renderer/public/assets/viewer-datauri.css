@@ -4,7 +4,7 @@
   border: 1px dotted red;
 }
 
-.matte {
+.backdrop {
   width: inherit;
   height: inherit;
   position: relative;
@@ -13,13 +13,13 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.matte.zoom-50  { width: 50%; }
-.matte.zoom-66  { width: 66%; }
-.matte.zoom-75  { width: 75%; }
-.matte.zoom-100 { width: 100%; }
-.matte.zoom-125 { width: 125%; }
-.matte.zoom-133 { width: 133%; }
-.matte.zoom-150 { width: 150%; }
+.backdrop.zoom-50  { width: 50%; }
+.backdrop.zoom-66  { width: 66%; }
+.backdrop.zoom-75  { width: 75%; }
+.backdrop.zoom-100 { width: 100%; }
+.backdrop.zoom-125 { width: 125%; }
+.backdrop.zoom-133 { width: 133%; }
+.backdrop.zoom-150 { width: 150%; }
 
 .pages {
   max-height: 3000px;
