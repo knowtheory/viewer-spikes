@@ -27,7 +27,7 @@
 
 .pages .page_container { 
   width: 100%; 
-  /*position: absolute;*/
+  position: absolute;
 }
 
 .pages .page_number { float: left; }

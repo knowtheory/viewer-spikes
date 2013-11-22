@@ -71,12 +71,22 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   render: function() {
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
-    //this.$('.pages').css({'padding-top': this.matteHeight});
+    this.$('.pages').css({'padding-top': this.matteHeight});
+    this.calculatePositions()
+    this.placePages();
     return this;
   },
   
-  calculateOffsets: function() {
-    this.pageViews
+  placePages: function() {
+    DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
+  },
+  
+  calculatePositions: function() {
+    return DC._.reduce(this.pageViews, function(matteHeight, page){
+      var dimensions = { top: matteHeight, 'padding-top': page.height() };
+      page.dimensions = dimensions
+      return matteHeight + page.height();
+    }, 0);
   },
   
   height: function() {
@@ -175,8 +185,7 @@ DC.view.Page = DC.Backbone.View.extend({
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
     
-    this.$('.page').html('<img></img>');
-    this.image = this.$('img');
+    this.render();
     this.image.attr('src', this.model.imageUrl());
     this.image.load(DC._.bind(function(){
       this.cacheNaturalDimensions();
