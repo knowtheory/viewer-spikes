@@ -9,7 +9,7 @@ javascripts:
     - public/javascripts/vendor/backbone.js
     - public/javascripts/namespace.js
     - public/javascripts/model.js
-    - public/javascripts/view.js
+    - public/javascripts/document_viewer.js
     - public/javascripts/views/*.js
     
   debugger:

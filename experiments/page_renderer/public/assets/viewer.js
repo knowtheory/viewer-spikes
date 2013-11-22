@@ -12788,7 +12788,7 @@ DC.model.SectionSet = DC.Backbone.Collection.extend({
   model: DC.model.Section
 });
 
-DC.view.Viewer = DC.Backbone.View.extend({
+DC.view.DocumentViewer = DC.Backbone.View.extend({
   className: 'viewer',
   
   initialize: function(options) {
