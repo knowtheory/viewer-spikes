@@ -1,4 +1,4 @@
-DC.view.Viewer = DC.Backbone.View.extend({
+DC.view.DocumentViewer = DC.Backbone.View.extend({
   className: 'viewer',
   
   initialize: function(options) {
@@ -32,6 +32,12 @@ DC.view.Viewer = DC.Backbone.View.extend({
     this.setDocument(data);
     this.render();
     this.pages.loadVisiblePages();
+  },
+  
+  unload: function() {
+    delete this.pages;
+    delete this.model;
+    return this;
   }
 });
 

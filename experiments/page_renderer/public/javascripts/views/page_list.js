@@ -19,6 +19,11 @@ DC.view.PageList = DC.Backbone.View.extend({
 
     this.listenTo(this.collection, 'reset', this.rebuild);
   },
+
+  rebuild: function() {
+    this.initializeSubviews();
+    this.render();
+  },
   
   initializeSubviews: function() {
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
@@ -51,11 +56,6 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.$('.pages').css({'padding-top': this.matteHeight});
   },
   
-  rebuild: function() {
-    this.initializeSubviews();
-    this.render();
-  },
-  
   render: function() {
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.resizeBackdrop();
@@ -79,10 +79,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   height: function() {
     return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, 0, this);
   },
-  
-  /*
-   Old! but still all works!
-  */
   
   loadVisiblePages: function(e){
     //console.log(this.height());

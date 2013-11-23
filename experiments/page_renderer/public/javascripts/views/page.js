@@ -63,7 +63,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   ensureAspectRatio: function() {
     //console.log("ensuring Aspect Ratio!");
-    this.setImageDimensions(this.model.constrainedDimensions(700));
+    this.setImageDimensions(this.constrainedDimensions(700));
   },
 
   cacheNaturalDimensions: function() {
@@ -75,6 +75,19 @@ DC.view.Page = DC.Backbone.View.extend({
       }
     });
     unstyledImage.attr('src', model.imageUrl());
+  },
+  
+  constrainedDimensions: function(limit, constrained_edge) {
+    constrained_edge = (constrained_edge || 'width');
+    if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
+    if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
+    var other_edge = (constrained_edge == 'width' ? 'height' : 'width');
+    var dimensions = this.model.naturalDimensions();
+    var scale = dimensions[constrained_edge] / limit; // smaller than 1 when limit is larger; greater than 1 when limit is smaller.
+    dimensions[constrained_edge] = limit;
+    dimensions[other_edge] = Math.floor(dimensions[other_edge] / scale);
+    return dimensions;
   }
+  
   
 });

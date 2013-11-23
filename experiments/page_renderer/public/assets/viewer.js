@@ -12721,15 +12721,14 @@ DC.model.Document = DC.Backbone.Model.extend({
   }
 });
 
-DC.model.Note = DC.Backbone.Model.extend({
-  
-});
+DC.model.Note = DC.Backbone.Model.extend({});
 
 DC.model.NoteSet = DC.Backbone.Collection.extend({
   model: DC.model.Note
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
+  idAttribute: 'pageNumber',
   defaults: {
     height    : 906,
     width     : 700,
@@ -12753,20 +12752,7 @@ DC.model.Page = DC.Backbone.Model.extend({
   
   orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
   
-  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
-  
-  constrainedDimensions: function(limit, constrained_edge) {
-    constrained_edge = (constrained_edge || 'width');
-    if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
-    if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
-    var other_edge = (constrained_edge == 'width' ? 'height' : 'width');
-    var dimensions = this.naturalDimensions();
-    var scale = dimensions[constrained_edge] / limit; // smaller than 1 when limit is larger; greater than 1 when limit is smaller.
-    dimensions[constrained_edge] = limit;
-    dimensions[other_edge] = Math.floor(dimensions[other_edge] / scale);
-    return dimensions;
-  }
-  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
@@ -12822,6 +12808,12 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     this.setDocument(data);
     this.render();
     this.pages.loadVisiblePages();
+  },
+  
+  unload: function() {
+    delete this.pages;
+    delete this.model;
+    return this;
   }
 });
 
@@ -12891,7 +12883,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   ensureAspectRatio: function() {
     //console.log("ensuring Aspect Ratio!");
-    this.setImageDimensions(this.model.constrainedDimensions(700));
+    this.setImageDimensions(this.constrainedDimensions(700));
   },
 
   cacheNaturalDimensions: function() {
@@ -12903,7 +12895,20 @@ DC.view.Page = DC.Backbone.View.extend({
       }
     });
     unstyledImage.attr('src', model.imageUrl());
+  },
+  
+  constrainedDimensions: function(limit, constrained_edge) {
+    constrained_edge = (constrained_edge || 'width');
+    if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
+    if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
+    var other_edge = (constrained_edge == 'width' ? 'height' : 'width');
+    var dimensions = this.model.naturalDimensions();
+    var scale = dimensions[constrained_edge] / limit; // smaller than 1 when limit is larger; greater than 1 when limit is smaller.
+    dimensions[constrained_edge] = limit;
+    dimensions[other_edge] = Math.floor(dimensions[other_edge] / scale);
+    return dimensions;
   }
+  
   
 });
 
@@ -12927,6 +12932,11 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.initializeSubviews();
 
     this.listenTo(this.collection, 'reset', this.rebuild);
+  },
+
+  rebuild: function() {
+    this.initializeSubviews();
+    this.render();
   },
   
   initializeSubviews: function() {
@@ -12960,11 +12970,6 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.$('.pages').css({'padding-top': this.matteHeight});
   },
   
-  rebuild: function() {
-    this.initializeSubviews();
-    this.render();
-  },
-  
   render: function() {
     this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.resizeBackdrop();
@@ -12988,10 +12993,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   height: function() {
     return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, 0, this);
   },
-  
-  /*
-   Old! but still all works!
-  */
   
   loadVisiblePages: function(e){
     //console.log(this.height());
