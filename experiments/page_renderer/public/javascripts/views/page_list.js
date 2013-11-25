@@ -69,15 +69,17 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   calculatePositions: function() {
+    var startingMargin = DC.view.Page.prototype.margin*2;
     return DC._.reduce(this.pageViews, function(backdropHeight, page){
       var dimensions = { top: backdropHeight }; //, 'padding-top': page.height() };
       page.dimensions = dimensions;
       return backdropHeight + page.height();
-    }, 0);
+    }, startingMargin);
   },
   
   height: function() {
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, 0, this);
+    var startingMargin = DC.view.Page.prototype.margin*2;
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, startingMargin, this);
   },
   
   loadVisiblePages: function(e){
