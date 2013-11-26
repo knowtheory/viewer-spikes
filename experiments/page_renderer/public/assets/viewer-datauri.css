@@ -18,6 +18,7 @@
 /* Page Renderer components */
 
 .backdrop {
+  max-height: inherit;
   height: inherit;
   width: inherit;
   position: relative;
@@ -34,9 +35,7 @@
 .backdrop.zoom-133 { width: 133%; }
 .backdrop.zoom-150 { width: 150%; }
 
-.pages {
-  max-height: 3000px;
-}
+.pages {  }
 
   .pages .page { 
     width: 100%; 
@@ -65,6 +64,6 @@
 
   .sidebar .page_mark {
     position: absolute;
-    border-top: black solid 1px;
-    width: 100%;
+    border: black solid 1px;
+    width: 8px;
   }

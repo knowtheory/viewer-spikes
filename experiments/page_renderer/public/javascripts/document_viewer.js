@@ -13,7 +13,11 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   render: function() {
-    this.$el.attr('style', 'height: inherit');
+    var parentHeight = this.$el.parent().height();
+    var parentWidth = this.$el.parent().width();
+    var height = (parentHeight > 0 ? parentHeight : window.innerHeight);
+    var width = (parentWidth > 0 ? parentWidth : window.innerWidth);
+    this.$el.css({ height: height, width: width });
     this.$el.html(JST['viewer']({ document: this.model }));
     this.renderSubviews();
     return this;

@@ -10,7 +10,7 @@ DC.view.Sidebar = DC.Backbone.View.extend({
     this.$el.html(JST['sidebar']());
   },
   
-  jump: function(percentPosition) {
-    this.$('.page_mark').css({'top': percentPosition + '%'});
+  jump: function(dimensions) {
+    this.$('.page_mark').css({'top': dimensions.top + '%', 'height' : dimensions.bottom + '%' });
   }
 });

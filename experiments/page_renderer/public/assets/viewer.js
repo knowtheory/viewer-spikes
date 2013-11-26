@@ -12789,7 +12789,11 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   render: function() {
-    this.$el.attr('style', 'height: inherit');
+    var parentHeight = this.$el.parent().height();
+    var parentWidth = this.$el.parent().width();
+    var height = (parentHeight > 0 ? parentHeight : window.innerHeight);
+    var width = (parentWidth > 0 ? parentWidth : window.innerWidth);
+    this.$el.css({ height: height, width: width });
     this.$el.html(JST['viewer']({ document: this.model }));
     this.renderSubviews();
     return this;
@@ -12974,9 +12978,9 @@ DC.view.PageList = DC.Backbone.View.extend({
   events: { 'scroll': 'announceScroll' },
   
   announceScroll: function() {
-    var scrollTop = (this.$el.scrollTop() / this.matteHeight) * 100;
-    console.log(scrollTop);
-    this.trigger('scroll', scrollTop);
+    var scrollTop      = (this.$el.scrollTop() / this.matteHeight) * 100;
+    var viewportHeight = (this.$el.parent().height() / this.matteHeight) * 100;
+    this.trigger('scroll', {top: scrollTop, bottom: viewportHeight});
   },
   
   // ToDo: make this smarter, and just have it subtract the difference
@@ -13082,7 +13086,7 @@ DC.view.Sidebar = DC.Backbone.View.extend({
     this.$el.html(JST['sidebar']());
   },
   
-  jump: function(percentPosition) {
-    this.$('.page_mark').css({'top': percentPosition + '%'});
+  jump: function(dimensions) {
+    this.$('.page_mark').css({'top': dimensions.top + '%', 'height' : dimensions.bottom + '%' });
   }
 });
