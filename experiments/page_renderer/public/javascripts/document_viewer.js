@@ -8,7 +8,8 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   createSubviews: function() {
-    this.pages = new DC.view.PageList({collection: this.model.pages});
+    this.pages   = new DC.view.PageList({collection: this.model.pages});
+    this.sidebar = new DC.view.Sidebar();
   },
   
   render: function() {
@@ -21,7 +22,13 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   renderSubviews: function() {
     this.pages.setElement(this.$('.backdrop'));
     this.pages.render();
+    this.sidebar.setElement(this.$('.sidebar'));
+    this.sidebar.render();
   },
+  
+  /*
+    PUBLIC API
+  */
   
   setDocument: function(data) {
     this.model.set(data);
@@ -38,6 +45,6 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     delete this.pages;
     delete this.model;
     return this;
-  }
+  }  
 });
 

@@ -12728,7 +12728,6 @@ DC.model.NoteSet = DC.Backbone.Collection.extend({
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
-  idAttribute: 'pageNumber',
   defaults: {
     height    : 906,
     width     : 700,
@@ -12756,7 +12755,8 @@ DC.model.Page = DC.Backbone.Model.extend({
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
-  model: DC.model.Page
+  model: DC.model.Page,
+  comparator: 'pageNumber'
 },
 {
   createPages: function(pageCount) {
@@ -12784,7 +12784,8 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   createSubviews: function() {
-    this.pages = new DC.view.PageList({collection: this.model.pages});
+    this.pages   = new DC.view.PageList({collection: this.model.pages});
+    this.sidebar = new DC.view.Sidebar();
   },
   
   render: function() {
@@ -12797,7 +12798,13 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   renderSubviews: function() {
     this.pages.setElement(this.$('.backdrop'));
     this.pages.render();
+    this.sidebar.setElement(this.$('.sidebar'));
+    this.sidebar.render();
   },
+  
+  /*
+    PUBLIC API
+  */
   
   setDocument: function(data) {
     this.model.set(data);
@@ -12814,7 +12821,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     delete this.pages;
     delete this.model;
     return this;
-  }
+  }  
 });
 
 
@@ -13051,5 +13058,17 @@ DC.view.PageList = DC.Backbone.View.extend({
     DC._.each(this.pageViews, function(page){
       if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
     });
+  }
+});
+
+DC.view.Sidebar = DC.Backbone.View.extend({
+  className: 'sidebar',
+  
+  initialize: function(options) {
+    
+  },
+  
+  render: function() {
+    this.$el.html(JST['sidebar']());
   }
 });

@@ -34,7 +34,6 @@ DC.model.NoteSet = DC.Backbone.Collection.extend({
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
-  idAttribute: 'pageNumber',
   defaults: {
     height    : 906,
     width     : 700,
@@ -62,7 +61,8 @@ DC.model.Page = DC.Backbone.Model.extend({
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
-  model: DC.model.Page
+  model: DC.model.Page,
+  comparator: 'pageNumber'
 },
 {
   createPages: function(pageCount) {
