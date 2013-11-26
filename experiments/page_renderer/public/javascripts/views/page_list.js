@@ -1,5 +1,6 @@
 DC.view.PageList = DC.Backbone.View.extend({
   className: 'backdrop',
+  SCROLL_THROTTLE: 500,
   
   jump: function(pageNumber) {
     var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
@@ -12,12 +13,14 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   initialize: function(options) {
     this.loadVisiblePages          = DC._.bind(this.loadVisiblePages, this);
-    this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, 500);
+    //this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, this.SCROLL_THROTTLE);
+    this.announceScroll            = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
     
     this.matteHeight = 0;
     this.initializeSubviews();
 
     this.listenTo(this.collection, 'reset', this.rebuild);
+    this.on('scroll', this.loadVisiblePages);
   },
 
   rebuild: function() {
@@ -47,7 +50,13 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.matteHeight = this.height();
   },
   
-  events: { 'scroll': 'throttledLoadVisiblePages' },
+  events: { 'scroll': 'announceScroll' },
+  
+  announceScroll: function() {
+    var scrollTop = (this.$el.scrollTop() / this.matteHeight) * 100;
+    console.log(scrollTop);
+    this.trigger('scroll', scrollTop);
+  },
   
   // ToDo: make this smarter, and just have it subtract the difference
   // from the existing height, rather than recounting all the page heights.
@@ -87,8 +96,8 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.identifyCurrentPage();
 
     var loadRange = 5;
-    // the floor should be the pages to be loaded above the current page
-    // unless current page is smaller than that range
+    // the floor should be earliest page above the current page to be loaded
+    // or the first page of the document if we're close to the top of the document.
     var floor   = ( this.currentPage <= loadRange ) ? 1 : ( this.currentPage - loadRange );
     // Likewise, the ceiling should be the pages below the current page to be loaded.
     // When scrolling to the end of the document, ensure ceiling is capped at the page count + 1 

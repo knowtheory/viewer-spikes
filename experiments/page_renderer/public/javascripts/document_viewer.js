@@ -9,7 +9,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   
   createSubviews: function() {
     this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.sidebar = new DC.view.Sidebar();
+    this.sidebar = new DC.view.Sidebar({publisher: this.pages});
   },
   
   render: function() {

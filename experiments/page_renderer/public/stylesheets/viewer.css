@@ -63,3 +63,8 @@
   right: 0;
 }
 
+  .sidebar .page_mark {
+    position: absolute;
+    border-top: black solid 1px;
+    width: 100%;
+  }
