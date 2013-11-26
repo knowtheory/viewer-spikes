@@ -12829,6 +12829,19 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
 });
 
 
+DC.view.Note = DC.Backbone.View.extend({
+  
+});
+
+DC.view.PageOverlay = DC.Backbone.View.extend({
+  
+});
+
+DC.view.NoteOverlay = DC.view.PageOverlay.extend({
+  
+});
+
+
 DC.view.Page = DC.Backbone.View.extend({
   margin:    10,
   className: 'page',
@@ -13043,6 +13056,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     if (visiblePages.length > 0) {
       var middleId = Math.floor(visiblePages.length / 2);
       this.currentPage = visiblePages[middleId].model.get('pageNumber');
+      this.trigger("currentPage", this.currentPage);
       //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
       //console.log(this.currentPage);
     }
@@ -13079,14 +13093,21 @@ DC.view.Sidebar = DC.Backbone.View.extend({
   
   initialize: function(options) {
     this.publisher = options.publisher;
-    if (this.publisher) { this.listenTo(this.publisher, 'scroll', this.jump); }
+    if (this.publisher) { 
+      this.listenTo(this.publisher, 'scroll', this.jump);
+      this.listenTo(this.publisher, 'currentPage', this.updateMark);
+    }
   },
   
   render: function() {
     this.$el.html(JST['sidebar']());
   },
   
+  updateMark: function(pageNumber) {
+    this.$('.page_mark span').html(pageNumber);
+  },
+  
   jump: function(dimensions) {
-    this.$('.page_mark').css({'top': dimensions.top + '%', 'height' : dimensions.bottom + '%' });
+    this.$('.viewport').css({'top': dimensions.top + '%', 'height' : dimensions.bottom + '%' });
   }
 });

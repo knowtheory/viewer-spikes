@@ -1,3 +1,12 @@
+/* Reset */
+
+.viewer * {
+  box-sizing: content-box;
+  color:#000;
+  font-size:10px;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
 /* Viewer structural components */
 .viewer { 
   height: inherit;
@@ -62,8 +71,15 @@
   right: 0;
 }
 
-  .sidebar .page_mark {
+  .sidebar .viewport {
     position: absolute;
     border: black solid 1px;
     width: 8px;
+  }
+  
+  .sidebar .page_mark .mark_text {
+    position: absolute;
+    right: 8px;
+    border: black 1px solid;
+    border-radius: 5px;
   }

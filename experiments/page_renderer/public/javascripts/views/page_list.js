@@ -118,6 +118,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     if (visiblePages.length > 0) {
       var middleId = Math.floor(visiblePages.length / 2);
       this.currentPage = visiblePages[middleId].model.get('pageNumber');
+      this.trigger("currentPage", this.currentPage);
       //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
       //console.log(this.currentPage);
     }
