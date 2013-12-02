@@ -1,6 +1,6 @@
 DC.view.PageList = DC.Backbone.View.extend({
   className: 'backdrop',
-  SCROLL_THROTTLE: 500,
+  SCROLL_THROTTLE: 100,
   
   jump: function(pageNumber) {
     var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
@@ -143,7 +143,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    console.log(pageNumbers, DC.$('img').size());
+    //console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
       if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
     });

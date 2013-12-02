@@ -12785,7 +12785,10 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   
   createSubviews: function() {
     this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.sidebar = new DC.view.Sidebar({publisher: this.pages});
+    this.sidebar = new DC.view.Sidebar();
+    
+    this.sidebar.listenTo(this.pages, 'scroll', this.sidebar.jump);
+    this.sidebar.listenTo(this.pages, 'currentPage', this.sidebar.updateMark);
   },
   
   render: function() {
@@ -12830,17 +12833,21 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
 
 
 DC.view.Note = DC.Backbone.View.extend({
-  
+  className: 'note'
+});
+
+DC.view.HeaderNote = DC.Backbone.View.extend({
+  className: 'note'
 });
 
 DC.view.PageOverlay = DC.Backbone.View.extend({
-  
+  className: 'overlay',
+  initialize: function(options) {
+    this.page = options.page;
+    this.listenTo(this.page, 'load', load);
+    this.listenTo(this.page)
+  }
 });
-
-DC.view.NoteOverlay = DC.view.PageOverlay.extend({
-  
-});
-
 
 DC.view.Page = DC.Backbone.View.extend({
   margin:    10,
@@ -12938,7 +12945,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
 DC.view.PageList = DC.Backbone.View.extend({
   className: 'backdrop',
-  SCROLL_THROTTLE: 500,
+  SCROLL_THROTTLE: 100,
   
   jump: function(pageNumber) {
     var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
@@ -13081,33 +13088,62 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   loadPages: function(pageNumbers) {
-    console.log(pageNumbers, DC.$('img').size());
+    //console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
       if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
     });
   }
 });
 
+DC.view.Renderer = DC.Backbone.View.extend({
+  initialize: function(options) {}
+});
 DC.view.Sidebar = DC.Backbone.View.extend({
   className: 'sidebar',
   
   initialize: function(options) {
-    this.publisher = options.publisher;
-    if (this.publisher) { 
-      this.listenTo(this.publisher, 'scroll', this.jump);
-      this.listenTo(this.publisher, 'currentPage', this.updateMark);
-    }
+    options = (options || {});
+    //this.publisher = options.publisher;
+    //if (this.publisher) { 
+    //  this.listenTo(this.publisher, 'scroll', this.jump);
+    //  this.listenTo(this.publisher, 'currentPage', this.updateMark);
+    //}
+    
+    this.drag = DC._.bind(this.drag, this);
+    this.endDrag = DC._.bind(this.endDrag, this);
+  },
+  
+  events: {
+    'mousedown .page_mark' : 'startDrag',
+    'mouseup   .page_mark' : 'endDrag'
   },
   
   render: function() {
     this.$el.html(JST['sidebar']());
+    this.mark = this.$('.page_mark');
   },
   
   updateMark: function(pageNumber) {
     this.$('.page_mark span').html(pageNumber);
   },
   
+  startDrag: function(e) {
+    this.mark.mousemove(this.drag);
+    this.mark.mouseup(this.endDrag);
+  },
+  
+  drag: function(e) {
+    console.log("Dragging!");
+    //this.jump({top: e.clientY});
+  },
+  
+  endDrag: function(e) {
+    this.mark.unbind("mousemove", this.drag);
+  },
+  
   jump: function(dimensions) {
-    this.$('.viewport').css({'top': dimensions.top + '%', 'height' : dimensions.bottom + '%' });
+    var css = {'top': dimensions.top + '%'};
+    if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
+    this.$('.viewport').css(css);
   }
 });

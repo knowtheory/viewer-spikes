@@ -73,8 +73,12 @@
 
   .sidebar .viewport {
     position: absolute;
-    border: black solid 1px;
+    /*border: black solid 1px;*/
     width: 8px;
+  }
+  
+  .sidebar .page_mark {
+    display: none;
   }
   
   .sidebar .page_mark .mark_text {
