@@ -26,6 +26,12 @@
 
 /* Page Renderer components */
 
+.renderer {
+  height: inherit;
+  width: inherit;
+  position: relative;
+}
+
 .backdrop {
   max-height: inherit;
   height: inherit;

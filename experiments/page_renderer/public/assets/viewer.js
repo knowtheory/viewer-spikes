@@ -12784,29 +12784,32 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   createSubviews: function() {
-    this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.sidebar = new DC.view.Sidebar();
-    
-    this.sidebar.listenTo(this.pages, 'scroll', this.sidebar.jump);
-    this.sidebar.listenTo(this.pages, 'currentPage', this.sidebar.updateMark);
+    // create ui chrome here.
+    this.renderer = new DC.view.Renderer({model: this.model});
   },
   
   render: function() {
+    // Some code to set the viewer size to the window dimensions
+    // in the event that there aren't explicit limits set.
+    // This should be cleaned up/tested further.
+    // It should also be generalized/extracted to listen to changes in
+    // window dimensions, etc.  Keep it flexible enough to extract and
+    // reuse with a viewer which uses a backbone wrapped iframe as it's
+    // container.
     var parentHeight = this.$el.parent().height();
     var parentWidth = this.$el.parent().width();
     var height = (parentHeight > 0 ? parentHeight : window.innerHeight);
     var width = (parentWidth > 0 ? parentWidth : window.innerWidth);
     this.$el.css({ height: height, width: width });
+    
+    // Render the viewer structure
     this.$el.html(JST['viewer']({ document: this.model }));
-    this.renderSubviews();
+    // Render viewer chrome.
+    // INSERT CHROME CODE HERE.
+    // Render the main renderer.
+    this.renderer.setElement(this.$('.renderer'));
+    this.renderer.render();
     return this;
-  },
-  
-  renderSubviews: function() {
-    this.pages.setElement(this.$('.backdrop'));
-    this.pages.render();
-    this.sidebar.setElement(this.$('.sidebar'));
-    this.sidebar.render();
   },
   
   /*
@@ -12815,14 +12818,10 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   
   setDocument: function(data) {
     this.model.set(data);
-    this.pages.collection = this.model.pages;
+    this.render();
   },
   
-  load: function(data) {
-    this.setDocument(data);
-    this.render();
-    this.pages.loadVisiblePages();
-  },
+  load: function(data) { this.setDocument(data); },
   
   unload: function() {
     delete this.pages;
@@ -12944,20 +12943,10 @@ DC.view.Page = DC.Backbone.View.extend({
 });
 
 DC.view.PageList = DC.Backbone.View.extend({
-  className: 'backdrop',
-  SCROLL_THROTTLE: 100,
-  
-  jump: function(pageNumber) {
-    var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
-    if (!page) return NaN;
-    var jumpOffset = this.$el.scrollTop() + page.$el.offset().top;
-    var fudge = 10;
-    this.$el.scrollTop(jumpOffset - fudge);
-    return jumpOffset;
-  },
+  className: 'pages',
   
   initialize: function(options) {
-    this.loadVisiblePages          = DC._.bind(this.loadVisiblePages, this);
+    //this.loadVisiblePages          = DC._.bind(this.loadVisiblePages, this);
     //this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, this.SCROLL_THROTTLE);
     this.announceScroll            = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
     
@@ -12965,7 +12954,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.initializeSubviews();
 
     this.listenTo(this.collection, 'reset', this.rebuild);
-    this.on('scroll', this.loadVisiblePages);
+    //this.on('scroll', this.loadVisiblePages);
   },
 
   rebuild: function() {
@@ -12974,6 +12963,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   },
   
   initializeSubviews: function() {
+    // create a page view for each model.
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
     DC._.each(this.pageViews, function(page){
       this.listenTo(page, 'resize', function(heightDifference){
@@ -12995,23 +12985,15 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.matteHeight = this.height();
   },
   
-  events: { 'scroll': 'announceScroll' },
-  
-  announceScroll: function() {
-    var scrollTop      = (this.$el.scrollTop() / this.matteHeight) * 100;
-    var viewportHeight = (this.$el.parent().height() / this.matteHeight) * 100;
-    this.trigger('scroll', {top: scrollTop, bottom: viewportHeight});
-  },
-  
   // ToDo: make this smarter, and just have it subtract the difference
   // from the existing height, rather than recounting all the page heights.
   resizeBackdrop: function(difference) {
     this.matteHeight = this.height();
-    this.$('.pages').css({'padding-top': this.matteHeight});
+    this.$el.css({'padding-top': this.matteHeight});
   },
   
   render: function() {
-    this.$('.pages').html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
+    this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.resizeBackdrop();
     this.calculatePositions();
     this.placePages();
@@ -13036,6 +13018,63 @@ DC.view.PageList = DC.Backbone.View.extend({
     return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, startingMargin, this);
   },
   
+  loadPages: function(pageNumbers) {
+    //console.log(pageNumbers, DC.$('img').size());
+    DC._.each(this.pageViews, function(page){
+      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
+    });
+  }
+});
+
+DC.view.Renderer = DC.Backbone.View.extend({
+  className: 'renderer',
+  SCROLL_THROTTLE: 100,
+  initialize: function(options) { 
+    this.createSubviews();
+
+    this.throttledScroll = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
+    this.on('scroll', this.loadVisiblePages, this);
+  },
+  
+  createSubviews: function() {
+    this.pages   = new DC.view.PageList({collection: this.model.pages});
+    this.sidebar = new DC.view.Sidebar();
+  },
+  
+  //events: { 'scroll .backdrop': 'announceScroll' },
+  
+  render: function() {
+    this.$el.html(JST['renderer']({ document: this.model }));
+    // because scrolls don't bubble explicitly bind to child node.
+    this.backdrop = this.$('.backdrop');
+    this.backdrop.scroll(this.throttledScroll);
+    this.renderSubviews();
+    return this;
+  },
+  
+  renderSubviews: function() {
+    this.pages.setElement(this.$('.pages'));
+    this.pages.render();
+    this.sidebar.setElement(this.$('.sidebar'));
+    this.sidebar.render();
+  },
+  
+  jump: function(pageNumber) {
+    var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
+    if (!page) return NaN;
+    var jumpOffset = this.$el.scrollTop() + page.$el.offset().top;
+    var fudge = 10;
+    this.$el.scrollTop(jumpOffset - fudge);
+    return jumpOffset;
+  },
+  
+  announceScroll: function(){ 
+    var pagesHeight    = this.pages.height();
+    var scrollTop      = (this.backdrop.scrollTop() / pagesHeight) * 100;
+    var viewportHeight = (this.$el.height() / pagesHeight) * 100;
+    this.trigger('scroll', {top: scrollTop, bottom: viewportHeight});
+  },
+
   loadVisiblePages: function(e){
     //console.log(this.height());
     this.identifyCurrentPage();
@@ -13047,18 +13086,18 @@ DC.view.PageList = DC.Backbone.View.extend({
     // Likewise, the ceiling should be the pages below the current page to be loaded.
     // When scrolling to the end of the document, ensure ceiling is capped at the page count + 1 
     // (N.B. the +1 is for _.range which excludes the endpoint).
-    var ceiling = (( this.currentPage + loadRange ) >= this.collection.size()) ? this.collection.size()+1 : (this.currentPage + loadRange);
+    var ceiling = (( this.currentPage + loadRange ) >= this.pages.collection.size()) ? this.pages.collection.size()+1 : (this.currentPage + loadRange);
     var range   = DC._.range(floor, ceiling);
-    this.loadPages(range, true);
+    this.pages.loadPages(range, true);
   },
   
   identifyCurrentPage: function() {
-    var viewableTop    = this.$el.scrollTop();
+    var viewableTop    = this.backdrop.scrollTop();
     var viewableBottom = this.$el.height();
     
     // Calculate which pages are visible based their height/offset
     // compared to the visible container
-    var visiblePages = DC._.filter(this.pageViews, this.isPageVisible, this);
+    var visiblePages = DC._.filter(this.pages.pageViews, this.isPageVisible, this);
 
     if (visiblePages.length > 0) {
       var middleId = Math.floor(visiblePages.length / 2);
@@ -13085,19 +13124,10 @@ DC.view.PageList = DC.Backbone.View.extend({
     // its top is above the container bottom
     var visibility = ( pageBottom > containerTop ) && ( pageTop < containerBottom );
     return visibility;
-  },
-  
-  loadPages: function(pageNumbers) {
-    //console.log(pageNumbers, DC.$('img').size());
-    DC._.each(this.pageViews, function(page){
-      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
-    });
   }
+  
 });
 
-DC.view.Renderer = DC.Backbone.View.extend({
-  initialize: function(options) {}
-});
 DC.view.Sidebar = DC.Backbone.View.extend({
   className: 'sidebar',
   

@@ -8,29 +8,32 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   createSubviews: function() {
-    this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.sidebar = new DC.view.Sidebar();
-    
-    this.sidebar.listenTo(this.pages, 'scroll', this.sidebar.jump);
-    this.sidebar.listenTo(this.pages, 'currentPage', this.sidebar.updateMark);
+    // create ui chrome here.
+    this.renderer = new DC.view.Renderer({model: this.model});
   },
   
   render: function() {
+    // Some code to set the viewer size to the window dimensions
+    // in the event that there aren't explicit limits set.
+    // This should be cleaned up/tested further.
+    // It should also be generalized/extracted to listen to changes in
+    // window dimensions, etc.  Keep it flexible enough to extract and
+    // reuse with a viewer which uses a backbone wrapped iframe as it's
+    // container.
     var parentHeight = this.$el.parent().height();
     var parentWidth = this.$el.parent().width();
     var height = (parentHeight > 0 ? parentHeight : window.innerHeight);
     var width = (parentWidth > 0 ? parentWidth : window.innerWidth);
     this.$el.css({ height: height, width: width });
+    
+    // Render the viewer structure
     this.$el.html(JST['viewer']({ document: this.model }));
-    this.renderSubviews();
+    // Render viewer chrome.
+    // INSERT CHROME CODE HERE.
+    // Render the main renderer.
+    this.renderer.setElement(this.$('.renderer'));
+    this.renderer.render();
     return this;
-  },
-  
-  renderSubviews: function() {
-    this.pages.setElement(this.$('.backdrop'));
-    this.pages.render();
-    this.sidebar.setElement(this.$('.sidebar'));
-    this.sidebar.render();
   },
   
   /*
@@ -39,14 +42,10 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   
   setDocument: function(data) {
     this.model.set(data);
-    this.pages.collection = this.model.pages;
+    this.render();
   },
   
-  load: function(data) {
-    this.setDocument(data);
-    this.render();
-    this.pages.loadVisiblePages();
-  },
+  load: function(data) { this.setDocument(data); },
   
   unload: function() {
     delete this.pages;
