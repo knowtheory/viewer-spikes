@@ -1,83 +1,80 @@
 DC.view.PageList = DC.Backbone.View.extend({
   className: 'pages',
   
-  initialize: function(options) {
-    //this.loadVisiblePages          = DC._.bind(this.loadVisiblePages, this);
-    //this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, this.SCROLL_THROTTLE);
-    this.announceScroll            = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
-    
-    this.matteHeight = 0;
-    this.initializeSubviews();
+  DEFAULT_ASPECT: 1.31,
+  GUTTER_SIZE: 0.2,
 
+  initialize: function(options) {
+    DC._.bindAll(this, 'onPageLoad');
     this.listenTo(this.collection, 'reset', this.rebuild);
-    //this.on('scroll', this.loadVisiblePages);
+    this._geometry = [];
+    this._aspectRatios = {};
   },
 
   rebuild: function() {
-    this.initializeSubviews();
-    this.render();
+    this.renderPages();
+    this.setGeometry();
   },
-  
-  initializeSubviews: function() {
-    // create a page view for each model.
-    this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
-    DC._.each(this.pageViews, function(page){
-      this.listenTo(page, 'resize', function(heightDifference){
-        if (heightDifference > 0) { 
-          this.calculatePositions();
-          this.placePages();
-          this.resizeBackdrop(heightDifference);
 
-          // Rethink repositioning scrollTop:
-          // If a page ABOVE current scroll position changes,
-          // then offset needs to be updated when the buffer size changes.
-          // If the current page has yet to load, then no jumping is needed,
-          // because only pages below the current page are adjusted.
-          //var offset = this.$el.scrollTop() - heightDifference;
-          //this.$el.scrollTop(offset);
-        }
-      });
-    }, this);
-    this.matteHeight = this.height();
+  setGeometry: function() {
+    this._geometry = [];
+    var count = this.collection.length;
+    var totalHeight = 0;
+    var aspects = 0;
+
+    for (var i = 0; i < count; i++) {
+      totalHeight += (this._aspectRatios[i] || this.DEFAULT_ASPECT) * 100;
+    };
+
+    for (var i = 0; i < count; i++) {
+      var top = aspects / totalHeight * 100;
+      aspects += (this._aspectRatios[i] || this.DEFAULT_ASPECT) * 100;
+      var bottom = aspects / totalHeight * 100;
+      var geometry = {top: top, bottom: bottom, height: bottom - top, gutter: this.GUTTER_SIZE};
+
+      var view = this.pageViews[i];
+      if (!DC._.isEmpty(view)) {view.setGeometry(geometry);}
+
+      this._geometry.push(geometry);
+    };
+
+    this.$el.css({'padding-top': totalHeight + '%'});
   },
-  
-  // ToDo: make this smarter, and just have it subtract the difference
-  // from the existing height, rather than recounting all the page heights.
-  resizeBackdrop: function(difference) {
-    this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.matteHeight});
-  },
-  
-  render: function() {
-    this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
-    this.resizeBackdrop();
-    this.calculatePositions();
-    this.placePages();
-    return this;
-  },
-  
-  placePages: function() {
-    DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
-  },
-  
-  calculatePositions: function() {
-    var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(backdropHeight, page){
-      var dimensions = { top: backdropHeight }; //, 'padding-top': page.height() };
-      page.dimensions = dimensions;
-      return backdropHeight + page.height();
-    }, startingMargin);
-  },
-  
+
   height: function() {
-    var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, startingMargin, this);
+    return this.$el.outerHeight();
   },
-  
+
   loadPages: function(pageNumbers) {
-    //console.log(pageNumbers, DC.$('img').size());
     DC._.each(this.pageViews, function(page){
-      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
+      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { 
+        page.load(); 
+      } 
+      else { 
+        page.unload(); 
+      }
     });
+  },
+
+  // When a page view loads, we inspect it's aspect ratio and cache it.
+  // The call to setGeometry() might need to be throttled to ensure it isn't 
+  // called too often.
+  onPageLoad: function(page) {
+    if (page.aspectRatio !== this.DEFAULT_ASPECT) {
+      this._aspectRatios[page.model.get('pageNumber') - 1] = page.aspectRatio;
+      this.setGeometry();
+    }
+  },
+
+  // This is just a debug function.
+  // It eagerly loads the pages, the real version should do it lazily.
+  renderPages: function() {
+    this.pageViews = [];
+    this.collection.each(function(pageModel, i) {
+      var page = new DC.view.Page({model: pageModel});
+      page.on('load', this.onPageLoad);
+      this.pageViews.push(page);
+      this.$el.append(page.render().el)
+    }, this);
   }
 });

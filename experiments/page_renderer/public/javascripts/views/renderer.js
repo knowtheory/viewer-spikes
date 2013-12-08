@@ -16,19 +16,14 @@ DC.view.Renderer = DC.Backbone.View.extend({
   //events: { 'scroll .backdrop': 'announceScroll' },
   
   render: function() {
-    this.$el.html(JST['renderer']({ document: this.model }));
-    // because scrolls don't bubble explicitly bind to child node.
-    this.backdrop = this.$('.backdrop');
+    this.backdrop = DC.$('<div class="backdrop"></div>');
     this.backdrop.scroll(this.throttledScroll);
-    this.renderSubviews();
+    this.$el.append(this.backdrop);
+
+    this.backdrop.append(this.pages.render().el);
+    this.$el.append(this.sidebar.render().el);
+
     return this;
-  },
-  
-  renderSubviews: function() {
-    this.pages.setElement(this.$('.pages'));
-    this.pages.render();
-    this.sidebar.setElement(this.$('.sidebar'));
-    this.sidebar.render();
   },
   
   jump: function(pageNumber) {

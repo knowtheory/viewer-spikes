@@ -50,23 +50,43 @@
 .backdrop.zoom-133 { width: 133%; }
 .backdrop.zoom-150 { width: 150%; }
 
-.pages {  }
+.pages {
+  height: 0;
+  position: relative;
+  width: 100%;
+}
 
   .pages .page { 
-    width: 100%; 
+    height: 0;
     position: absolute;
+    width: 100%;
   }
 
-  .pages .page_number { float: left; }
+  .pages .page_number { 
+    float: left; 
+    display: none;
+  }
 
   .pages .matte {
-    border: black 1px solid;
-    margin-left: 45px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .page:nth-child(odd) .matte {
+    background: red;
+  }
+
+  .page:nth-child(even) .matte {
+    background: green;
   }
 
   .pages .matte img { 
-    background: center url(../images/spinner_circle.gif?1361646239) no-repeat;
+    background: center url(../images/spinner_circle.gif?1386110784) no-repeat;
     pointer-events: none;
+    width: 100%;
   }
 
 .sidebar { 

@@ -21,6 +21,7 @@ DC.view.Sidebar = DC.Backbone.View.extend({
   render: function() {
     this.$el.html(JST['sidebar']());
     this.mark = this.$('.page_mark');
+    return this;
   },
   
   updateMark: function(pageNumber) {
