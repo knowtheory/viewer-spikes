@@ -3,6 +3,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
   SCROLL_THROTTLE: 100,
   initialize: function(options) { 
     DC._.bindAll(this, 'onZoomChange');
+    this.uiState = options.uiState;
     options.uiState.on('change:zoom', this.onZoomChange);
     this._currentZoom = options.uiState.get('zoom');
 
@@ -83,8 +84,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
       var middleId = Math.floor(visiblePages.length / 2);
       this.currentPage = visiblePages[middleId].model.get('pageNumber');
       this.trigger("currentPage", this.currentPage);
-      //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
-      //console.log(this.currentPage);
+      this.uiState.set('currentPage', this.currentPage);
     }
   },
   

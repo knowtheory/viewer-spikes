@@ -12,6 +12,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     // create ui chrome here.
     this.renderer = new DC.view.Renderer({model: this.model, uiState: this.ui});
     this.zoom = new DC.view.Zoom({uiState: this.ui});
+    this.pagination = new DC.view.Pagination({uiState: this.ui});
   },
   
   render: function() {
@@ -32,6 +33,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     this.$el.html(JST['viewer']({ document: this.model }));
     // Render viewer chrome.
     // INSERT CHROME CODE HERE.
+    this.$el.prepend(this.pagination.render().el);
     this.$el.prepend(this.zoom.render().el);
     // Render the main renderer.
     this.renderer.setElement(this.$('.renderer'));
