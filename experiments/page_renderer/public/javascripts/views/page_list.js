@@ -9,6 +9,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.listenTo(this.collection, 'reset', this.rebuild);
     this._geometry = [];
     this._aspectRatios = {};
+    this._expandedAspectRatios = {};
   },
 
   rebuild: function() {
@@ -23,14 +24,15 @@ DC.view.PageList = DC.Backbone.View.extend({
     var aspects = 0;
 
     for (var i = 0; i < count; i++) {
-      totalHeight += (this._aspectRatios[i] || this.DEFAULT_ASPECT) * 100;
+      totalHeight += this._getExpandedAspectRatio(i) * 100;
     };
 
     for (var i = 0; i < count; i++) {
+      var ratio = this._getExpandedAspectRatio(i);
       var top = aspects / totalHeight * 100;
-      aspects += (this._aspectRatios[i] || this.DEFAULT_ASPECT) * 100;
+      aspects += ratio * 100;
       var bottom = aspects / totalHeight * 100;
-      var geometry = {top: top, bottom: bottom, height: bottom - top, gutter: this.GUTTER_SIZE};
+      var geometry = {top: top, bottom: bottom, height: bottom - top, expandedRatio: ratio};
 
       var view = this.pageViews[i];
       if (!DC._.isEmpty(view)) {view.setGeometry(geometry);}
@@ -39,6 +41,19 @@ DC.view.PageList = DC.Backbone.View.extend({
     };
 
     this.$el.css({'padding-top': totalHeight + '%'});
+  },
+
+  // The basic algorithim here is quite simple. The ideal/base ratio for the 
+  // calculations is 1. Gutter is percentage of that. The calculation expresses
+  // the following; ratios greater than then the ideal mean a smaller gutter, 
+  // ratios less than the ideal mean a larger gutter.
+  _getExpandedAspectRatio: function(i) {
+    if (DC._.isNumber(this._expandedAspectRatios[i])) {return this._expandedAspectRatios[i];}
+    var ratio = (this._aspectRatios[i] || this.DEFAULT_ASPECT);
+    var diff = ratio - 1;
+    var expanded = ratio + (ratio * (this.GUTTER_SIZE * diff));
+    this._expandedAspectRatios[i] = expanded;
+    return expanded;
   },
 
   height: function() {
@@ -61,7 +76,9 @@ DC.view.PageList = DC.Backbone.View.extend({
   // called too often.
   onPageLoad: function(page) {
     if (page.aspectRatio !== this.DEFAULT_ASPECT) {
-      this._aspectRatios[page.model.get('pageNumber') - 1] = page.aspectRatio;
+      var index = page.model.get('pageNumber') - 1;
+      this._aspectRatios[index] = page.aspectRatio;
+      delete this._expandedAspectRatios[index];
       this.setGeometry();
     }
   },

@@ -69,17 +69,26 @@
 
   .pages .matte {
     position: absolute;
-    left: 0;
     top: 0;
-    right: 0;
-    bottom: 0;
+    left: 0;
+    height: 0;
+    width: 100%;
   }
 
-  .page:nth-child(odd) .matte {
+  .pages .content {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: blue;
+  }
+
+  .page:nth-child(odd) {
     background: red;
   }
 
-  .page:nth-child(even) .matte {
+  .page:nth-child(even) {
     background: green;
   }
 
