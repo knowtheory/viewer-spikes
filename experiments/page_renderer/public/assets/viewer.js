@@ -12780,12 +12780,14 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   initialize: function(options) {
     //console.log('new viewer');
     this.model = (options.model || new DC.model.Document());
+    this.ui = new DC.Backbone.Model({zoom: 100, currentPage: 1});
     this.createSubviews();
   },
   
   createSubviews: function() {
     // create ui chrome here.
-    this.renderer = new DC.view.Renderer({model: this.model});
+    this.renderer = new DC.view.Renderer({model: this.model, uiState: this.ui});
+    this.zoom = new DC.view.Zoom({uiState: this.ui});
   },
   
   render: function() {
@@ -12806,9 +12808,11 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     this.$el.html(JST['viewer']({ document: this.model }));
     // Render viewer chrome.
     // INSERT CHROME CODE HERE.
+    this.$el.prepend(this.zoom.render().el);
     // Render the main renderer.
     this.renderer.setElement(this.$('.renderer'));
     this.renderer.render();
+
     return this;
   },
   
@@ -12905,6 +12909,9 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.setGeometry();
   },
 
+  // TODO: Review the bottom/height calculations to see if they are really 
+  // needed. Currently checks for visible are deferred to the pages. If we 
+  // shift to a lazy-load model, these precalculated values are of more use.
   setGeometry: function() {
     this._geometry = [];
     var count = this.collection.length;
@@ -12988,8 +12995,11 @@ DC.view.Renderer = DC.Backbone.View.extend({
   className: 'renderer',
   SCROLL_THROTTLE: 100,
   initialize: function(options) { 
-    this.createSubviews();
+    DC._.bindAll(this, 'onZoomChange');
+    options.uiState.on('change:zoom', this.onZoomChange);
+    this._currentZoom = options.uiState.get('zoom');
 
+    this.createSubviews();
     this.throttledScroll = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
     this.on('scroll', this.loadVisiblePages, this);
   },
@@ -12998,12 +13008,22 @@ DC.view.Renderer = DC.Backbone.View.extend({
     this.pages   = new DC.view.PageList({collection: this.model.pages});
     this.sidebar = new DC.view.Sidebar();
   },
+
+  onZoomChange: function(model, zoom) {
+    if (this._rendered) {
+      this.backdrop.removeClass('zoom-' + this._currentZoom);
+      this.backdrop.addClass('zoom-' + zoom);
+      this._currentZoom = zoom;
+    }
+  },
   
   //events: { 'scroll .backdrop': 'announceScroll' },
   
   render: function() {
+    this._rendered = true;
+
     this.backdrop = DC.$('<div class="backdrop"></div>');
-    this.backdrop.scroll(this.throttledScroll);
+    this.$el.scroll(this.throttledScroll);
     this.$el.append(this.backdrop);
 
     this.backdrop.append(this.pages.render().el);
@@ -13129,5 +13149,40 @@ DC.view.Sidebar = DC.Backbone.View.extend({
     var css = {'top': dimensions.top + '%'};
     if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
     this.$('.viewport').css(css);
+  }
+});
+DC.view.Zoom = DC.Backbone.View.extend({
+  className: 'zoom-level',
+  LEVELS: [50, 66, 75, 100, 125, 133, 150],
+  events: {
+    'change select': 'onUpdate'
+  },
+  _rendered: false,
+
+  initialize: function(options) {
+    DC._.bindAll(this, 'onZoomChange');
+    this.uiState = options.uiState;
+    this.uiState.on('change:zoom', this.onZoomChange);
+  },
+
+  onZoomChange: function(uiState, zoom) {
+    if (this._rendered) {this.$select.val(zoom);}
+  },
+
+  onUpdate: function() {
+    this.uiState.set('zoom', parseInt(this.$select.val()));
+  },
+
+  render: function() {
+    this._rendered = true;
+    var title = DC.$('<span class="zoom-level-title">Zoom</span>');
+    var options = DC._.map(this.LEVELS, function(level) {
+      return DC.$('<option></option>').attr('value', level).text(level + '%');
+    });
+    this.$select = DC.$('<select class="zoom-level-select"></select>').append(options);
+    this.$el.append(title, this.$select);
+    this.$select.val(this.uiState.get('zoom'));
+
+    return this;
   }
 });

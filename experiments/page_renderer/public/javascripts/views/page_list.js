@@ -17,6 +17,9 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.setGeometry();
   },
 
+  // TODO: Review the bottom/height calculations to see if they are really 
+  // needed. Currently checks for visible are deferred to the pages. If we 
+  // shift to a lazy-load model, these precalculated values are of more use.
   setGeometry: function() {
     this._geometry = [];
     var count = this.collection.length;

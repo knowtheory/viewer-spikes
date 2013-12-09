@@ -30,6 +30,7 @@
   height: inherit;
   width: inherit;
   position: relative;
+  overflow: scroll;
 }
 
 .backdrop {
@@ -37,7 +38,6 @@
   height: inherit;
   width: inherit;
   position: relative;
-  overflow: scroll;
   margin: 0 auto;
   -webkit-overflow-scrolling: touch;
 }

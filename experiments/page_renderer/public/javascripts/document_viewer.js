@@ -4,12 +4,14 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   initialize: function(options) {
     //console.log('new viewer');
     this.model = (options.model || new DC.model.Document());
+    this.ui = new DC.Backbone.Model({zoom: 100, currentPage: 1});
     this.createSubviews();
   },
   
   createSubviews: function() {
     // create ui chrome here.
-    this.renderer = new DC.view.Renderer({model: this.model});
+    this.renderer = new DC.view.Renderer({model: this.model, uiState: this.ui});
+    this.zoom = new DC.view.Zoom({uiState: this.ui});
   },
   
   render: function() {
@@ -30,9 +32,11 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     this.$el.html(JST['viewer']({ document: this.model }));
     // Render viewer chrome.
     // INSERT CHROME CODE HERE.
+    this.$el.prepend(this.zoom.render().el);
     // Render the main renderer.
     this.renderer.setElement(this.$('.renderer'));
     this.renderer.render();
+
     return this;
   },
   

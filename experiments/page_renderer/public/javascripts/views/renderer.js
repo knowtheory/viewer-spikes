@@ -2,8 +2,11 @@ DC.view.Renderer = DC.Backbone.View.extend({
   className: 'renderer',
   SCROLL_THROTTLE: 100,
   initialize: function(options) { 
-    this.createSubviews();
+    DC._.bindAll(this, 'onZoomChange');
+    options.uiState.on('change:zoom', this.onZoomChange);
+    this._currentZoom = options.uiState.get('zoom');
 
+    this.createSubviews();
     this.throttledScroll = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
     this.on('scroll', this.loadVisiblePages, this);
   },
@@ -12,12 +15,22 @@ DC.view.Renderer = DC.Backbone.View.extend({
     this.pages   = new DC.view.PageList({collection: this.model.pages});
     this.sidebar = new DC.view.Sidebar();
   },
+
+  onZoomChange: function(model, zoom) {
+    if (this._rendered) {
+      this.backdrop.removeClass('zoom-' + this._currentZoom);
+      this.backdrop.addClass('zoom-' + zoom);
+      this._currentZoom = zoom;
+    }
+  },
   
   //events: { 'scroll .backdrop': 'announceScroll' },
   
   render: function() {
+    this._rendered = true;
+
     this.backdrop = DC.$('<div class="backdrop"></div>');
-    this.backdrop.scroll(this.throttledScroll);
+    this.$el.scroll(this.throttledScroll);
     this.$el.append(this.backdrop);
 
     this.backdrop.append(this.pages.render().el);
