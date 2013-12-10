@@ -37,6 +37,9 @@ DC.view.Renderer = DC.Backbone.View.extend({
     this.backdrop.append(this.pages.render().el);
     this.$el.append(this.sidebar.render().el);
 
+    this._currentZoom = this.uiState.get('zoom');
+    this.backdrop.addClass('zoom-' + this._currentZoom);
+
     return this;
   },
   

@@ -4,7 +4,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   initialize: function(options) {
     //console.log('new viewer');
     this.model = (options.model || new DC.model.Document());
-    this.ui = new DC.Backbone.Model({zoom: 100, currentPage: 1});
+    this.ui = new DC.Backbone.Model({zoom: 75, currentPage: 1});
     this.createSubviews();
   },
   

@@ -76,20 +76,16 @@
   }
 
   .pages .content {
-    bottom: 0;
-    left: 0;
+    background: white;
+    border: 0.1em solid #CCC;
+    bottom: -0.1em;
+    left: -0.1em;
     position: absolute;
-    right: 0;
-    top: 0;
-    background: blue;
-  }
-
-  .page:nth-child(odd) {
-    background: red;
-  }
-
-  .page:nth-child(even) {
-    background: green;
+    right: -0.1em;
+    top: -0.1em;
+    -webkit-box-shadow: 4px 4px 2px rgba(50, 50, 50, 0.07);
+    -moz-box-shadow: 4px 4px 2px rgba(50, 50, 50, 0.07);
+    box-shadow: 4px 4px 2px rgba(50, 50, 50, 0.07);
   }
 
   .pages .matte img { 
