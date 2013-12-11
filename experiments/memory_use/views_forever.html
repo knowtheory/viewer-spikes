@@ -8,12 +8,29 @@
   <body>
     <div id="count"></div>
     <script>
+      var MyView = Backbone.View.extend({
+        render: function() {
+          this.$el.html('hai!'); 
+          $('body').append(this.$el); 
+          return this; 
+        }
+      });
+    
       var views = []
       var counter = 0;
       var addViewFOREVER = function() {
         //console.log('adding...');
         counter += 1;
-        views.push(new Backbone.View());
+        views.push( (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render(),
+                    (new MyView()).render());
         $('#count').html(''+views.length);
         window.setTimeout(addViewFOREVER, 0);
       }
