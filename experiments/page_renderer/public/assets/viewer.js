@@ -12809,8 +12809,8 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     this.$el.html(JST['viewer']({ document: this.model }));
     // Render viewer chrome.
     // INSERT CHROME CODE HERE.
-    this.$el.prepend(this.pagination.render().el);
-    this.$el.prepend(this.zoom.render().el);
+    this.$('.footer').prepend(this.pagination.render().el);
+    this.$('.footer').prepend(this.zoom.render().el);
     // Render the main renderer.
     this.renderer.setElement(this.$('.renderer'));
     this.renderer.render();
@@ -12836,6 +12836,23 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   }  
 });
 
+
+DC.view.Note = DC.Backbone.View.extend({
+  className: 'note'
+});
+
+DC.view.HeaderNote = DC.Backbone.View.extend({
+  className: 'note'
+});
+
+DC.view.PageOverlay = DC.Backbone.View.extend({
+  className: 'overlay',
+  initialize: function(options) {
+    this.page = options.page;
+    this.listenTo(this.page, 'load', load);
+    this.listenTo(this.page)
+  }
+});
 
 DC.view.Page = DC.Backbone.View.extend({
   margin:    10,
