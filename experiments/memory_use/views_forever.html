@@ -8,16 +8,16 @@
   <body>
     <div id="count"></div>
     <script>
-      var collection = new Backbone.Collection();
+      var views = []
       var counter = 0;
-      var addModelFOREVER = function() {
+      var addViewFOREVER = function() {
         //console.log('adding...');
         counter += 1;
-        collection.add({id: counter});
-        $('#count').html(''+collection.size());
-        window.setTimeout(addModelFOREVER, 0);
+        views.push(new Backbone.View());
+        $('#count').html(''+views.length);
+        window.setTimeout(addViewFOREVER, 0);
       }
-      addModelFOREVER();
+      addViewFOREVER();
     </script>
   </body>
 </html>
