@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="javascript/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="javascript/underscore.js" type="text/javascript"></script>
+    <script src="javascript/backbone.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="count"></div>
+    <script>
+      var collection = new Backbone.Collection();
+      var counter = 0;
+      var addModelFOREVER = function() {
+        //console.log('adding...');
+        counter += 1;
+        collection.add({id: counter});
+        $('#count').html(''+collection.size());
+        window.setTimeout(addModelFOREVER, 50);
+      }
+      addModelFOREVER();
+    </script>
+  </body>
+</html>
