@@ -31,6 +31,7 @@
   width: inherit;
   position: relative;
   overflow: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 .backdrop {
@@ -89,7 +90,7 @@
   }
 
   .pages .matte img { 
-    background: center url(../images/spinner_circle.gif?1386110784) no-repeat;
+    background: center url(../images/spinner_circle.gif?1361646239) no-repeat;
     pointer-events: none;
     width: 100%;
   }
