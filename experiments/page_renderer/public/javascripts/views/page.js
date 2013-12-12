@@ -41,7 +41,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   onImageLoad: function() {
     this.aspectRatio = this.image.height() / this.image.width();
-    this.model.set({'imageLoaded': true});
+    this.model.set({imageLoaded: true, height: this.image.height(), width: this.image.width()});
     this.trigger('load', this);
   },
 
