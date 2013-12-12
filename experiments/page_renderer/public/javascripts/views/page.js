@@ -1,5 +1,5 @@
 DC.view.Page = DC.Backbone.View.extend({
-  margin:    10,
+  margin:    25,
   className: 'page',
   aspectRatio: 1.31,
   expandedRatio: 1.31,

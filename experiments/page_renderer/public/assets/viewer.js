@@ -12855,7 +12855,7 @@ DC.view.PageOverlay = DC.Backbone.View.extend({
 });
 
 DC.view.Page = DC.Backbone.View.extend({
-  margin:    10,
+  margin:    25,
   className: 'page',
   aspectRatio: 1.31,
   expandedRatio: 1.31,
@@ -12897,7 +12897,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   onImageLoad: function() {
     this.aspectRatio = this.image.height() / this.image.width();
-    this.model.set({'imageLoaded': true});
+    this.model.set({imageLoaded: true, height: this.image.height(), width: this.image.width()});
     this.trigger('load', this);
   },
 
@@ -12933,16 +12933,16 @@ DC.view.PageList = DC.Backbone.View.extend({
   // shift to a lazy-load model, these precalculated values are of more use.
   setGeometry: function() {
     this._geometry = [];
-    var count = this.collection.length;
+    var pageCount = this.collection.length;
     var totalHeight = 0;
     var aspects = 0;
 
-    for (var i = 0; i < count; i++) {
+    for (var i = 0; i < pageCount; i++) {
       totalHeight += this._getExpandedAspectRatio(i) * 100;
     };
 
-    for (var i = 0; i < count; i++) {
-      var ratio = this._getExpandedAspectRatio(i);
+    for (var i = 0; i < pageCount; i++) {
+      var ratio = this._getExpandedAspectRatio(i); 
       var top = aspects / totalHeight * 100;
       aspects += ratio * 100;
       var bottom = aspects / totalHeight * 100;
@@ -12962,9 +12962,16 @@ DC.view.PageList = DC.Backbone.View.extend({
   // the following; ratios greater than then the ideal mean a smaller gutter, 
   // ratios less than the ideal mean a larger gutter.
   _getExpandedAspectRatio: function(i) {
+    // if the ratio already exists, short cut on it.
     if (DC._.isNumber(this._expandedAspectRatios[i])) {return this._expandedAspectRatios[i];}
+    // get the aspectRatio of the page, or the default
     var ratio = (this._aspectRatios[i] || this.DEFAULT_ASPECT);
+    
+    // if the images is square, the difference is 0
+    // if the image is taller than wide, the diff is positive
+    // if the image is wider than tall, the diff is negative
     var diff = ratio - 1;
+    // gutter size is 0.2?
     var expanded = ratio + (ratio * (this.GUTTER_SIZE * diff));
     this._expandedAspectRatios[i] = expanded;
     return expanded;
@@ -12976,12 +12983,7 @@ DC.view.PageList = DC.Backbone.View.extend({
 
   loadPages: function(pageNumbers) {
     DC._.each(this.pageViews, function(page){
-      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { 
-        page.load(); 
-      } 
-      else { 
-        page.unload(); 
-      }
+      (DC._.contains(pageNumbers, page.model.get('pageNumber'))) ? page.load() : page.unload(); 
     });
   },
 
