@@ -10,9 +10,9 @@ DC.view.Renderer = DC.Backbone.View.extend({
   
   createSubviews: function() {
     this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.overview = new DC.view.Overview({renderer: this});
+    this.overview = new DC.view.Overview({collection: this.model.pages});
     
-    this.overview.listenTo(this, 'scroll', this.overview.jump);
+    //this.overview.listenTo(this, 'scroll', this.overview.jump);
     this.overview.listenTo(this, 'currentPage', this.overview.updateMark);
   },
   

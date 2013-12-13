@@ -5,6 +5,7 @@ compress_assets: off
 javascripts:
   viewer:
     - public/javascripts/vendor/jquery-1.10.2.js
+    - public/javascripts/vendor/jquery-ui-1.10.3.custom.js
     - public/javascripts/vendor/underscore.js
     - public/javascripts/vendor/backbone.js
     - public/javascripts/namespace.js

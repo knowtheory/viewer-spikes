@@ -1,49 +1,45 @@
-DC.view.Sidebar = DC.Backbone.View.extend({
-  className: 'sidebar',
+DC.view.Overview = DC.Backbone.View.extend({
+  className: 'overview',
   
   initialize: function(options) {
     options = (options || {});
-    //this.publisher = options.publisher;
-    //if (this.publisher) { 
-    //  this.listenTo(this.publisher, 'scroll', this.jump);
-    //  this.listenTo(this.publisher, 'currentPage', this.updateMark);
-    //}
-    
-    this.drag = DC._.bind(this.drag, this);
-    this.endDrag = DC._.bind(this.endDrag, this);
+    //DC._.bindAll(this, 'announceScroll');
   },
   
   events: {
-    'mousedown .page_mark' : 'startDrag',
-    'mouseup   .page_mark' : 'endDrag'
+    'slide': 'announceScroll'
   },
   
   render: function() {
-    this.$el.html(JST['sidebar']());
-    this.mark = this.$('.page_mark');
+    this.$el.html(JST['overview']());
+    this.slider = this.$el.slider({
+      orientation: 'vertical',
+      range: 'min',
+      min: 1,
+      max: this.collection.length
+    });
+    this.mark = this.$('.ui-slider-handle');
+    this.mark.css({'background': 'red'});
+    //this.mark = this.$('.page_mark');
   },
   
   updateMark: function(pageNumber) {
+    this.slider.slider('option', 'value', this._invertScale(pageNumber));
     this.$('.page_mark span').html(pageNumber);
   },
   
-  startDrag: function(e) {
-    this.mark.mousemove(this.drag);
-    this.mark.mouseup(this.endDrag);
+  announceScroll: function(e, slider) {
+    this.trigger('scroll')
   },
   
-  drag: function(e) {
-    console.log("Dragging!");
-    //this.jump({top: e.clientY});
-  },
-  
-  endDrag: function(e) {
-    this.mark.unbind("mousemove", this.drag);
+  _invertScale: function(value) {
+    return this.collection.length - value + 1;
   },
   
   jump: function(dimensions) {
-    var css = {'top': dimensions.top + '%'};
-    if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
-    this.$('.viewport').css(css);
+    console.log("jumping");
+    //var css = {'top': dimensions.top + '%'};
+    //if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
+    //this.$('.viewport').css(css);
   }
 });
