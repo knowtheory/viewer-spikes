@@ -2,8 +2,8 @@ DC.view.Overview = DC.Backbone.View.extend({
   className: 'overview',
   
   initialize: function(options) {
-    options = (options || {});
-    //DC._.bindAll(this, 'announceScroll');
+    this.options = (options || {});
+    DC._.bindAll(this, 'announceScroll');
   },
   
   events: {
@@ -20,6 +20,7 @@ DC.view.Overview = DC.Backbone.View.extend({
     });
     this.mark = this.$('.ui-slider-handle');
     this.mark.css({'background': 'red'});
+    this.updateMark((this.options.pageNumber || 1));
     //this.mark = this.$('.page_mark');
   },
   
@@ -29,17 +30,10 @@ DC.view.Overview = DC.Backbone.View.extend({
   },
   
   announceScroll: function(e, slider) {
-    this.trigger('scroll')
+    this.trigger('scroll', this._invertScale(slider.value));
   },
   
   _invertScale: function(value) {
     return this.collection.length - value + 1;
   },
-  
-  jump: function(dimensions) {
-    console.log("jumping");
-    //var css = {'top': dimensions.top + '%'};
-    //if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
-    //this.$('.viewport').css(css);
-  }
 });

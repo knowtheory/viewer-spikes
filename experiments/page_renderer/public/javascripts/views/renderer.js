@@ -14,6 +14,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     
     //this.overview.listenTo(this, 'scroll', this.overview.jump);
     this.overview.listenTo(this, 'currentPage', this.overview.updateMark);
+    this.listenTo(this.overview, 'scroll', this.jump);
   },
   
   //events: { 'scroll .backdrop': 'announceScroll' },
@@ -35,11 +36,11 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   jump: function(pageNumber) {
-    var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
+    var page = DC._.find(this.pages.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
     if (!page) return NaN;
-    var jumpOffset = this.$el.scrollTop() + page.$el.offset().top;
+    var jumpOffset = this.$('.backdrop').scrollTop() + page.$el.offset().top;
     var fudge = 10;
-    this.$el.scrollTop(jumpOffset - fudge);
+    this.$('.backdrop').scrollTop(jumpOffset - fudge);
     return jumpOffset;
   },
   

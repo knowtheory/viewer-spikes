@@ -14946,6 +14946,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   setDocument: function(data) {
     this.model.set(data);
     this.render();
+    this.renderer.loadVisiblePages();
   },
   
   load: function(data) { this.setDocument(data); },
@@ -14979,8 +14980,8 @@ DC.view.Overview = DC.Backbone.View.extend({
   className: 'overview',
   
   initialize: function(options) {
-    options = (options || {});
-    //DC._.bindAll(this, 'announceScroll');
+    this.options = (options || {});
+    DC._.bindAll(this, 'announceScroll');
   },
   
   events: {
@@ -14997,6 +14998,7 @@ DC.view.Overview = DC.Backbone.View.extend({
     });
     this.mark = this.$('.ui-slider-handle');
     this.mark.css({'background': 'red'});
+    this.updateMark((this.options.pageNumber || 1));
     //this.mark = this.$('.page_mark');
   },
   
@@ -15006,19 +15008,12 @@ DC.view.Overview = DC.Backbone.View.extend({
   },
   
   announceScroll: function(e, slider) {
-    this.trigger('scroll')
+    this.trigger('scroll', this._invertScale(slider.value));
   },
   
   _invertScale: function(value) {
     return this.collection.length - value + 1;
   },
-  
-  jump: function(dimensions) {
-    console.log("jumping");
-    //var css = {'top': dimensions.top + '%'};
-    //if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
-    //this.$('.viewport').css(css);
-  }
 });
 
 DC.view.Page = DC.Backbone.View.extend({
@@ -15215,6 +15210,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     
     //this.overview.listenTo(this, 'scroll', this.overview.jump);
     this.overview.listenTo(this, 'currentPage', this.overview.updateMark);
+    this.listenTo(this.overview, 'scroll', this.jump);
   },
   
   //events: { 'scroll .backdrop': 'announceScroll' },
@@ -15236,11 +15232,11 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   jump: function(pageNumber) {
-    var page = DC._.find(this.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
+    var page = DC._.find(this.pages.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
     if (!page) return NaN;
-    var jumpOffset = this.$el.scrollTop() + page.$el.offset().top;
+    var jumpOffset = this.$('.backdrop').scrollTop() + page.$el.offset().top;
     var fudge = 10;
-    this.$el.scrollTop(jumpOffset - fudge);
+    this.$('.backdrop').scrollTop(jumpOffset - fudge);
     return jumpOffset;
   },
   

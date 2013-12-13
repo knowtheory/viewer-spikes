@@ -43,6 +43,7 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   setDocument: function(data) {
     this.model.set(data);
     this.render();
+    this.renderer.loadVisiblePages();
   },
   
   load: function(data) { this.setDocument(data); },
