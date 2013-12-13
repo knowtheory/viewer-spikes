@@ -10,7 +10,10 @@ DC.view.Renderer = DC.Backbone.View.extend({
   
   createSubviews: function() {
     this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.sidebar = new DC.view.Sidebar();
+    this.overview = new DC.view.Overview({renderer: this});
+    
+    this.overview.listenTo(this, 'scroll', this.overview.jump);
+    this.overview.listenTo(this, 'currentPage', this.overview.updateMark);
   },
   
   //events: { 'scroll .backdrop': 'announceScroll' },
@@ -27,8 +30,8 @@ DC.view.Renderer = DC.Backbone.View.extend({
   renderSubviews: function() {
     this.pages.setElement(this.$('.pages'));
     this.pages.render();
-    this.sidebar.setElement(this.$('.sidebar'));
-    this.sidebar.render();
+    this.overview.setElement(this.$('.overview'));
+    this.overview.render();
   },
   
   jump: function(pageNumber) {

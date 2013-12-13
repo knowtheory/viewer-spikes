@@ -12848,6 +12848,60 @@ DC.view.PageOverlay = DC.Backbone.View.extend({
   }
 });
 
+DC.view.Overview = DC.Backbone.View.extend({
+  className: 'overview',
+  
+  initialize: function(options) {
+    options = (options || {});
+    this.renderer = options.renderer;
+    //this.publisher = options.publisher;
+    //if (this.publisher) { 
+    //  this.listenTo(this.publisher, 'scroll', this.jump);
+    //  this.listenTo(this.publisher, 'currentPage', this.updateMark);
+    //}
+
+    this.drag    = DC._.bind(this.drag, this);
+    this.endDrag = DC._.bind(this.endDrag, this);
+  },
+  
+  events: {
+    'mousedown .page_mark' : 'startDrag',
+    'mouseup   .page_mark' : 'endDrag'
+  },
+  
+  render: function() {
+    this.$el.html(JST['overview']());
+    this.mark = this.$('.page_mark');
+  },
+  
+  updateMark: function(pageNumber) {
+    this.$('.page_mark span').html(pageNumber);
+  },
+  
+  startDrag: function(e) {
+    this.mark.mousemove(this.drag);
+    this.mark.mouseup(this.endDrag);
+  },
+  
+  drag: function(e) {
+    //console.log("Dragging!", e);
+    var top = ((e.clientY / this.$el.height())*100);
+    console.log(top);
+    this.jump({top: top});
+  },
+  
+  endDrag: function(e) {
+    this.mark.unbind("mousemove", this.drag);
+  },
+  
+  jump: function(dimensions) {
+    console.log("jumping");
+    var css = {'top': dimensions.top + '%'};
+    if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
+    this.$('.viewport').css(css);
+  }
+});
+
 DC.view.Page = DC.Backbone.View.extend({
   margin:    10,
   className: 'page',
@@ -13038,7 +13092,10 @@ DC.view.Renderer = DC.Backbone.View.extend({
   
   createSubviews: function() {
     this.pages   = new DC.view.PageList({collection: this.model.pages});
-    this.sidebar = new DC.view.Sidebar();
+    this.overview = new DC.view.Overview({renderer: this});
+    
+    this.overview.listenTo(this, 'scroll', this.overview.jump);
+    this.overview.listenTo(this, 'currentPage', this.overview.updateMark);
   },
   
   //events: { 'scroll .backdrop': 'announceScroll' },
@@ -13055,8 +13112,8 @@ DC.view.Renderer = DC.Backbone.View.extend({
   renderSubviews: function() {
     this.pages.setElement(this.$('.pages'));
     this.pages.render();
-    this.sidebar.setElement(this.$('.sidebar'));
-    this.sidebar.render();
+    this.overview.setElement(this.$('.overview'));
+    this.overview.render();
   },
   
   jump: function(pageNumber) {
@@ -13126,54 +13183,4 @@ DC.view.Renderer = DC.Backbone.View.extend({
     return visibility;
   }
   
-});
-
-DC.view.Sidebar = DC.Backbone.View.extend({
-  className: 'sidebar',
-  
-  initialize: function(options) {
-    options = (options || {});
-    //this.publisher = options.publisher;
-    //if (this.publisher) { 
-    //  this.listenTo(this.publisher, 'scroll', this.jump);
-    //  this.listenTo(this.publisher, 'currentPage', this.updateMark);
-    //}
-    
-    this.drag = DC._.bind(this.drag, this);
-    this.endDrag = DC._.bind(this.endDrag, this);
-  },
-  
-  events: {
-    'mousedown .page_mark' : 'startDrag',
-    'mouseup   .page_mark' : 'endDrag'
-  },
-  
-  render: function() {
-    this.$el.html(JST['sidebar']());
-    this.mark = this.$('.page_mark');
-  },
-  
-  updateMark: function(pageNumber) {
-    this.$('.page_mark span').html(pageNumber);
-  },
-  
-  startDrag: function(e) {
-    this.mark.mousemove(this.drag);
-    this.mark.mouseup(this.endDrag);
-  },
-  
-  drag: function(e) {
-    console.log("Dragging!");
-    //this.jump({top: e.clientY});
-  },
-  
-  endDrag: function(e) {
-    this.mark.unbind("mousemove", this.drag);
-  },
-  
-  jump: function(dimensions) {
-    var css = {'top': dimensions.top + '%'};
-    if (dimensions.bottom) { css.height = dimensions.bottom + '%'; }
-    this.$('.viewport').css(css);
-  }
 });

@@ -69,7 +69,7 @@
     pointer-events: none;
   }
 
-.sidebar { 
+.overview { 
   height: 100%; 
   width: 10px; 
   position: absolute;
@@ -77,17 +77,17 @@
   right: 0;
 }
 
-  .sidebar .viewport {
+  .overview .viewport {
     position: absolute;
     /*border: black solid 1px;*/
     width: 8px;
   }
   
-  .sidebar .page_mark {
-    display: none;
+  .overview .page_mark {
+    /*display: none;*/
   }
   
-  .sidebar .page_mark .mark_text {
+  .overview .page_mark .mark_text {
     position: absolute;
     right: 8px;
     width: 50px;
