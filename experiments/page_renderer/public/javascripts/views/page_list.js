@@ -26,6 +26,10 @@ DC.view.PageList = DC.Backbone.View.extend({
     var totalHeight = 0;
     var aspects = 0;
 
+    // Height is calculated by getting the aspect ratio of each page
+    // multiplying it by 100 (to get a valid percentage) and adding it
+    // to the buffer.  Thus if a document were to be 5 square pages,
+    // a document is 500% of a page.
     for (var i = 0; i < pageCount; i++) {
       totalHeight += this._getExpandedAspectRatio(i) * 100;
     };
@@ -80,9 +84,9 @@ DC.view.PageList = DC.Backbone.View.extend({
   // The call to setGeometry() might need to be throttled to ensure it isn't 
   // called too often.
   onPageLoad: function(page) {
-    if (page.aspectRatio !== this.DEFAULT_ASPECT) {
+    if (page.model.aspectRatio() !== this.DEFAULT_ASPECT) {
       var index = page.model.get('pageNumber') - 1;
-      this._aspectRatios[index] = page.aspectRatio;
+      this._aspectRatios[index] = page.model.aspectRatio();
       delete this._expandedAspectRatios[index];
       this.setGeometry();
     }

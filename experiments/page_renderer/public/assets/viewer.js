@@ -12749,6 +12749,8 @@ DC.model.Page = DC.Backbone.Model.extend({
     return template.replace(/\{page\}/, this.get('pageNumber'));
   },
   
+  aspectRatio: function() { return this.get('height') / this.get('width'); },
+  
   orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
   
   naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
@@ -12855,9 +12857,7 @@ DC.view.PageOverlay = DC.Backbone.View.extend({
 });
 
 DC.view.Page = DC.Backbone.View.extend({
-  margin:    25,
   className: 'page',
-  aspectRatio: 1.31,
   expandedRatio: 1.31,
   initialize: function(options) {
     DC._.bindAll(this, 'onImageLoad');
@@ -12865,10 +12865,23 @@ DC.view.Page = DC.Backbone.View.extend({
 
   // This function is responsible for setting the aspect ratio of the external
   // page wrapper, interior wrapper and position.
+  //
+  // Since width is fixed and dictated by parent list
+  // all this does is set the height appropriate to the width based on aspect ratio.
+  //
+  // Important Nota Bene:
+  //
+  //  "padding-top" of an object is calculated proportional to ITS OWN WIDTH (as opposed
+  //  to an object's "height" which is calculated proportional to its parent container's
+  //  height)
+  //
+  //  As a consequence, a page's height can be specified as a proportion to its width
+  //  allowing pages to to scale up/down naturally as a function of the document's width
+  //  without recalculating heights or positions.
   setGeometry: function(vals) {
     this.expandedRatio = vals.expandedRatio;
-    this.$el.css({'top': vals.top + '%', 'padding-top': this.expandedRatio * 100 + '%'});
-    this.matte.css('padding-top', this.aspectRatio * 100 + '%');
+    this.$el.css({'top': vals.top + '%', 'padding-bottom': this.expandedRatio * 100 + '%'});
+    this.matte.css('padding-top', this.model.aspectRatio() * 100 + '%');
   },
 
   render: function() {
@@ -12879,13 +12892,7 @@ DC.view.Page = DC.Backbone.View.extend({
     return this;
   },
   
-  height: function() {
-    return this.model.get('height') + this.margin*2;
-  },
-
-  isLoaded: function() {
-    return this.model.get('imageLoaded');
-  },
+  isLoaded: function() { return this.model.get('imageLoaded'); },
 
   load: function() {
     if (this.isLoaded()) return;
@@ -12896,7 +12903,6 @@ DC.view.Page = DC.Backbone.View.extend({
   },
 
   onImageLoad: function() {
-    this.aspectRatio = this.image.height() / this.image.width();
     this.model.set({imageLoaded: true, height: this.image.height(), width: this.image.width()});
     this.trigger('load', this);
   },
@@ -12937,6 +12943,10 @@ DC.view.PageList = DC.Backbone.View.extend({
     var totalHeight = 0;
     var aspects = 0;
 
+    // Height is calculated by getting the aspect ratio of each page
+    // multiplying it by 100 (to get a valid percentage) and adding it
+    // to the buffer.  Thus if a document were to be 5 square pages,
+    // a document is 500% of a page.
     for (var i = 0; i < pageCount; i++) {
       totalHeight += this._getExpandedAspectRatio(i) * 100;
     };
@@ -12991,9 +13001,9 @@ DC.view.PageList = DC.Backbone.View.extend({
   // The call to setGeometry() might need to be throttled to ensure it isn't 
   // called too often.
   onPageLoad: function(page) {
-    if (page.aspectRatio !== this.DEFAULT_ASPECT) {
+    if (page.model.aspectRatio() !== this.DEFAULT_ASPECT) {
       var index = page.model.get('pageNumber') - 1;
-      this._aspectRatios[index] = page.aspectRatio;
+      this._aspectRatios[index] = page.model.aspectRatio();
       delete this._expandedAspectRatios[index];
       this.setGeometry();
     }
