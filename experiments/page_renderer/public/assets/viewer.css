@@ -65,14 +65,15 @@
 
   .pages .page_number { 
     float: left; 
+    display: none;
   }
 
   .pages .matte {
     position: absolute;
     top: 0;
+    left: 0;
     height: 0;
-    right: 2.5%;
-    width: 90%;
+    width: 100%;
   }
 
   .pages .content {
