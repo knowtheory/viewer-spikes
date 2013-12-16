@@ -6,9 +6,7 @@ DC.view.Overview = DC.Backbone.View.extend({
     DC._.bindAll(this, 'announceScroll');
   },
   
-  events: {
-    'slide': 'announceScroll'
-  },
+  events: { 'slide': 'announceScroll' },
   
   render: function() {
     this.$el.html(JST['overview']());
@@ -21,7 +19,6 @@ DC.view.Overview = DC.Backbone.View.extend({
     this.mark = this.$('.ui-slider-handle');
     this.mark.css({'background': 'red'});
     this.updateMark((this.options.pageNumber || 1));
-    //this.mark = this.$('.page_mark');
   },
   
   updateMark: function(pageNumber) {
