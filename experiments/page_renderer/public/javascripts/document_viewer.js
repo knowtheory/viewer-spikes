@@ -55,3 +55,11 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   }  
 });
 
+DC._.extend(DV, {
+  loadJSON: function(data) {
+    this.documents.add(data);
+  },
+  
+  documents: new DC.model.DocumentSet(),
+  viewers: {}
+});

@@ -27,10 +27,13 @@ DC.model.Document = DC.Backbone.Model.extend({
   }
 });
 
+DC.model.DocumentSet = DC.Backbone.Collection.extend({ model: DC.model.Document });
+
 DC.model.Note = DC.Backbone.Model.extend({});
 
 DC.model.NoteSet = DC.Backbone.Collection.extend({
-  model: DC.model.Note
+  model: DC.model.Note,
+  onPage: function(pageNumber) { return this.where({'page': pageNumber}); }
 });
 
 DC.model.Page = DC.Backbone.Model.extend({

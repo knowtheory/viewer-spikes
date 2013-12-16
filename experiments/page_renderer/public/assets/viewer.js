@@ -14818,6 +14818,7 @@ DC.Backbone = Backbone.noConflict();
 DC._        = _.noConflict();
 DC.jQuery   = jQuery.noConflict();
 DC.$        = DC.jQuery;
+DV          = DC;
 
 DC.model.Document = DC.Backbone.Model.extend({
   initialize: function(attributes, options) {
@@ -14848,10 +14849,13 @@ DC.model.Document = DC.Backbone.Model.extend({
   }
 });
 
+DC.model.DocumentSet = DC.Backbone.Collection.extend({ model: DC.model.Document });
+
 DC.model.Note = DC.Backbone.Model.extend({});
 
 DC.model.NoteSet = DC.Backbone.Collection.extend({
-  model: DC.model.Note
+  model: DC.model.Note,
+  onPage: function(pageNumber) { return this.where({'page': pageNumber}); }
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
@@ -14958,7 +14962,14 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   }  
 });
 
-
+DC._.extend(DV, {
+  loadJSON: function(data) {
+    this.documents.add(data);
+  },
+  
+  documents: new DC.model.DocumentSet(),
+  viewers: {}
+});
 DC.view.Note = DC.Backbone.View.extend({
   className: 'note'
 });
@@ -14984,9 +14995,7 @@ DC.view.Overview = DC.Backbone.View.extend({
     DC._.bindAll(this, 'announceScroll');
   },
   
-  events: {
-    'slide': 'announceScroll'
-  },
+  events: { 'slide': 'announceScroll' },
   
   render: function() {
     this.$el.html(JST['overview']());
@@ -14999,7 +15008,6 @@ DC.view.Overview = DC.Backbone.View.extend({
     this.mark = this.$('.ui-slider-handle');
     this.mark.css({'background': 'red'});
     this.updateMark((this.options.pageNumber || 1));
-    //this.mark = this.$('.page_mark');
   },
   
   updateMark: function(pageNumber) {
