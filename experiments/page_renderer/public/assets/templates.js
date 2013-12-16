@@ -5,5 +5,5 @@ window.JST['overview'] = DC._.template('<div class="page_mark ui-slider-handle">
 window.JST['page'] = DC._.template('<div class="page_number">p. <%= page.pageNumber %></div>\n<div class="header"></div>\n<div class="matte" style="width: <%= page.width %>px; height: <%= page.height %>px;">\n</div>\n');
 window.JST['pages'] = DC._.template('');
 window.JST['renderer'] = DC._.template('<div class="backdrop">\n  <div class="pages"></div>\n</div>\n<div class="overview"></div>\n');
-window.JST['viewer'] = DC._.template('<div class="viewer">\n  <div class="header"></div>\n  <div class="renderer">\n    <div class="backdrop">\n      <div class="pages"></div>\n    </div>\n    <div class="sidebar"></div>\n  </div>\n  <div class="footer"></div>\n</div>\n\n');
+window.JST['viewer'] = DC._.template('<div class="viewer">\n  <div class="header"></div>\n  <div class="renderer">\n    <div class="backdrop">\n      <div class="pages"></div>\n    </div>\n    <div class="sidebar"></div>\n  </div>\n  <div class="footer">\n    <div class="up"></div>\n    <div class="menu"></div>\n    <div class="down"></div>\n  </div>\n</div>\n\n');
 })();

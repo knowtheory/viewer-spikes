@@ -170,14 +170,34 @@
   bottom:0;
   width: 97%;
   height:50px;
-  background-color:rgba(50,0,0,0.4);
   color:#fff;
 }
+
+  .footer .up {
+    height: 100%;
+    width: 33%;
+    background-color:rgba(50,0,0,0.4);
+    float: left;
+  }
+  
+  .footer .down {
+    height: 100%;
+    width: 33%;
+    background-color:rgba(0,50,0,0.4);
+    float: left;
+  }
+  
+  .footer .menu {
+    height: 100%;
+    width: 34%;
+    background-color:rgba(0,0,50,0.4);
+    float: left;
+  }
 
 /* Page Renderer components */
 
 .renderer {
-  height: inherit;
+  height: 100%;
   width: inherit;
   position: relative;
 }

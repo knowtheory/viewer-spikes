@@ -14908,6 +14908,12 @@ DC.model.SectionSet = DC.Backbone.Collection.extend({
 DC.view.DocumentViewer = DC.Backbone.View.extend({
   className: 'viewer',
   
+  events: {
+    'click .footer .up'   : 'previousPage',
+    'click .footer .down' : 'nextPage',
+    'click .footer .menu' : 'menu',
+  },
+  
   initialize: function(options) {
     //console.log('new viewer');
     this.model = (options.model || new DC.model.Document());
@@ -14956,10 +14962,17 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   load: function(data) { this.setDocument(data); },
   
   unload: function() {
-    delete this.pages;
-    delete this.model;
-    return this;
-  }  
+  },
+  
+  nextPage: function() {
+    this.renderer.jump(this.renderer.currentPage + 1);
+  },
+  
+  previousPage: function() {
+    this.renderer.jump(this.renderer.currentPage - 1);
+  },
+  
+  
 });
 
 DC._.extend(DV, {
