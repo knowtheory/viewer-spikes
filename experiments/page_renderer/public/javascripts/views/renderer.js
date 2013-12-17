@@ -68,9 +68,6 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   identifyCurrentPage: function() {
-    var viewableTop    = this.backdrop.scrollTop();
-    var viewableBottom = this.$el.height();
-    
     // Calculate which pages are visible based their height/offset
     // compared to the visible container
     var visiblePages = DC._.filter(this.pages.pageViews, this.isPageVisible, this);
@@ -85,13 +82,13 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   isPageVisible: function(page) {
-    var pageHeight = page.$el.height();
+    var pageHeight = page.dimensions.height;
     // offsets relative to parent container
-    var pageTop    = page.$el.offset().top;
+    var pageTop    = page.dimensions.top;
     var pageBottom = pageTop + pageHeight;
     
-    var containerTop    = 0;
-    var containerBottom = this.$el.height();
+    var containerTop    = this.backdrop.scrollTop();
+    var containerBottom = containerTop + this.$el.height();
     
     // Visibility is defined as the intersection of a page's height/dimensions
     // and the view port's height/dimensions.

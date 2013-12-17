@@ -7,6 +7,8 @@ DC.view.Page = DC.Backbone.View.extend({
     this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
+    this.dimensions = { top: 0, height: 0 };
+    
     this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
     this.listenTo(this.model, 'change:width',  this.ensureAspectRatio);
   },
@@ -17,8 +19,9 @@ DC.view.Page = DC.Backbone.View.extend({
     return this;
   },
   
-  height: function() {
-    return this.model.get('height') + this.margin*2;
+  calculateDimensions: function() {
+    this.dimensions.height = this.model.get('height') + this.margin*2;
+    return this.dimensions;
   },
 
   isLoaded: function() {
@@ -63,7 +66,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   ensureAspectRatio: function() {
     //console.log("ensuring Aspect Ratio!");
-    this.setImageDimensions(this.constrainedDimensions(700));
+    this.setImageDimensions(this.constrainedImageDimensions(700));
   },
 
   cacheNaturalDimensions: function() {
@@ -77,7 +80,7 @@ DC.view.Page = DC.Backbone.View.extend({
     unstyledImage.attr('src', model.imageUrl());
   },
   
-  constrainedDimensions: function(limit, constrained_edge) {
+  constrainedImageDimensions: function(limit, constrained_edge) {
     constrained_edge = (constrained_edge || 'width');
     if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
     if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }

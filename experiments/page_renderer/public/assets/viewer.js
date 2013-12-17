@@ -15046,6 +15046,8 @@ DC.view.Page = DC.Backbone.View.extend({
     this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
+    this.dimensions = { top: 0, height: 0 };
+    
     this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
     this.listenTo(this.model, 'change:width',  this.ensureAspectRatio);
   },
@@ -15056,8 +15058,9 @@ DC.view.Page = DC.Backbone.View.extend({
     return this;
   },
   
-  height: function() {
-    return this.model.get('height') + this.margin*2;
+  calculateDimensions: function() {
+    this.dimensions.height = this.model.get('height') + this.margin*2;
+    return this.dimensions;
   },
 
   isLoaded: function() {
@@ -15102,7 +15105,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   ensureAspectRatio: function() {
     //console.log("ensuring Aspect Ratio!");
-    this.setImageDimensions(this.constrainedDimensions(700));
+    this.setImageDimensions(this.constrainedImageDimensions(700));
   },
 
   cacheNaturalDimensions: function() {
@@ -15116,7 +15119,7 @@ DC.view.Page = DC.Backbone.View.extend({
     unstyledImage.attr('src', model.imageUrl());
   },
   
-  constrainedDimensions: function(limit, constrained_edge) {
+  constrainedImageDimensions: function(limit, constrained_edge) {
     constrained_edge = (constrained_edge || 'width');
     if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
     if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
@@ -15196,15 +15199,15 @@ DC.view.PageList = DC.Backbone.View.extend({
   calculatePositions: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
     return DC._.reduce(this.pageViews, function(backdropHeight, page){
-      var dimensions = { top: backdropHeight }; //, 'padding-top': page.height() };
-      page.dimensions = dimensions;
-      return backdropHeight + page.height();
+      page.calculateDimensions();
+      page.dimensions.top = backdropHeight;
+      return backdropHeight + page.dimensions.height;
     }, startingMargin);
   },
   
   height: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height(); }, startingMargin, this);
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
   },
   
   loadPages: function(pageNumbers) {
@@ -15285,9 +15288,6 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   identifyCurrentPage: function() {
-    var viewableTop    = this.backdrop.scrollTop();
-    var viewableBottom = this.$el.height();
-    
     // Calculate which pages are visible based their height/offset
     // compared to the visible container
     var visiblePages = DC._.filter(this.pages.pageViews, this.isPageVisible, this);
@@ -15302,13 +15302,13 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   isPageVisible: function(page) {
-    var pageHeight = page.$el.height();
+    var pageHeight = page.dimensions.height;
     // offsets relative to parent container
-    var pageTop    = page.$el.offset().top;
+    var pageTop    = page.dimensions.top;
     var pageBottom = pageTop + pageHeight;
     
-    var containerTop    = 0;
-    var containerBottom = this.$el.height();
+    var containerTop    = this.backdrop.scrollTop();
+    var containerBottom = containerTop + this.$el.height();
     
     // Visibility is defined as the intersection of a page's height/dimensions
     // and the view port's height/dimensions.
