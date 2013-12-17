@@ -262,3 +262,7 @@
   .overview .page.even {
     background-color: #ccc;
   }
+  
+  .overview .page.has_notes {
+    background-color: #ffe325;
+  }
