@@ -86,7 +86,6 @@
   right: 0;
   bottom: 150px;
   height: 100%;
-  background: #ccc;
 }
 
   .overview .viewport {
@@ -107,4 +106,8 @@
     background-color: white;
     border: black 1px solid;
     border-radius: 5px;
+  }
+  
+  .overview .page.even {
+    background-color: #ccc;
   }

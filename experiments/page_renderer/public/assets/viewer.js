@@ -15011,7 +15011,7 @@ DC.view.Overview = DC.Backbone.View.extend({
   events: { 'slide': 'announceScroll' },
   
   render: function() {
-    this.$el.html(JST['overview']());
+    this.$el.html(JST['overview']({pageCount: this.collection.length}));
     this.slider = this.$el.slider({
       orientation: 'vertical',
       range: 'min',

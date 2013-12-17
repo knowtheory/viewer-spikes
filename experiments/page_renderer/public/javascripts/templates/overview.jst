@@ -1,3 +1,6 @@
 <div class="page_mark ui-slider-handle">
   <div class="mark_text">page <span class="page_number">1</span></div>
 </div>
+<% _.each(_.range(1, pageCount), function(pageNumber) { %>
+<div class="page<%= (pageNumber % 2) ? ' even' : '' %>" style="width: 100%;position: absolute; top:<%= (100*pageNumber/pageCount) %>%; height:<%= (100/pageCount) %>%"></div>
+<% }); %>
