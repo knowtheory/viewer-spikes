@@ -15160,7 +15160,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     DC._.each(this.pageViews, function(page){
       this.listenTo(page, 'resize', function(heightDifference){
         if (heightDifference > 0) { 
-          this.calculatePositions();
+          this.calculatePagePositions();
           this.placePages();
           this.resizeBackdrop(heightDifference);
 
@@ -15187,7 +15187,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   render: function() {
     this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.resizeBackdrop();
-    this.calculatePositions();
+    this.calculatePagePositions();
     this.placePages();
     return this;
   },
@@ -15196,7 +15196,7 @@ DC.view.PageList = DC.Backbone.View.extend({
     DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
   },
   
-  calculatePositions: function() {
+  calculatePagePositions: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
     return DC._.reduce(this.pageViews, function(backdropHeight, page){
       page.calculateDimensions();
