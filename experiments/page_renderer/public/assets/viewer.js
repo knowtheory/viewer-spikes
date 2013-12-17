@@ -15054,7 +15054,7 @@ DC.view.Page = DC.Backbone.View.extend({
 
   render: function() {
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
-    this.image = this.$('img');
+    //this.$el.css({height: this.dimensions.height, top: this.dimensions.top});
     return this;
   },
   
