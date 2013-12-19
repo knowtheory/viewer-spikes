@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="javascripts/jquery-1.9.1.js" type="text/javascript"></script>
+    <style>
+      * { margin: 0; padding: 0;}
+    
+      .main { 
+        width: 1000px;
+        height: 100%;
+        margin: auto;
+        padding: 10px;
+      }
+      
+      .container {
+        width: 800px;
+        height: 800px;
+      }
+      
+      .box {
+        background: #ccc;
+        position: absolute;
+        height: inherit;
+        width: inherit;
+      }
+      
+      .container .toggle {
+        border: 1px solid black;
+        background: #ffccff;
+        height: 100px;
+        width: 100px;
+        margin: 10px;
+        position: relative;
+        padding: auto;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div class="container">
+        <div class="box">
+          <div class="toggle">Zoom!</div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var box = $('.box');
+      var toggle = $('.box .toggle');
+      
+      var takeover = function() {
+        var win = $(window);
+        toggle.html("Unzoom!");
+        box.css({ 
+          height: win.height(), 
+          width: win.width(), 
+          position: 'absolute', 
+          top: 0, 
+          left: 0
+        });
+      }
+      
+      var untakeover = function() {
+        toggle.html("Zoom!");
+        box.css({ 
+          height: 'inherit',
+          width: 'inherit',
+          position: 'absolute',
+          top: 'inherit',
+          left: 'inherit'
+        });
+      }
+      
+      var toggleTakover = function(e) {
+        if (box.hasClass('takeover')) { 
+          untakeover();
+          box.removeClass('takeover');
+        } else {
+          takeover();
+          box.addClass('takeover');
+        }
+      }
+      
+      toggle.click(toggleTakover);
+    </script>
+  </body>
+</html>
