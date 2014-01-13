@@ -2,15 +2,10 @@ DC.view.PageList = DC.Backbone.View.extend({
   className: 'pages',
   
   initialize: function(options) {
-    //this.loadVisiblePages          = DC._.bind(this.loadVisiblePages, this);
-    //this.throttledLoadVisiblePages = DC._.throttle(this.loadVisiblePages, this.SCROLL_THROTTLE);
-    this.announceScroll            = DC._.bind(DC._.throttle(this.announceScroll, this.SCROLL_THROTTLE), this);
-    
     this.matteHeight = 0;
     this.initializeSubviews();
 
     this.listenTo(this.collection, 'reset', this.rebuild);
-    //this.on('scroll', this.loadVisiblePages);
   },
 
   rebuild: function() {
