@@ -178,6 +178,7 @@
     width: 33%;
     background-color:rgba(50,0,0,0.4);
     float: left;
+    cursor: pointer;
   }
   
   .footer .down {
@@ -185,6 +186,7 @@
     width: 33%;
     background-color:rgba(0,50,0,0.4);
     float: left;
+    cursor: pointer;
   }
   
   .footer .menu {
