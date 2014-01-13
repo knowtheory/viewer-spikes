@@ -5,6 +5,9 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     'click .footer .up'   : 'previousPage',
     'click .footer .down' : 'nextPage',
     'click .footer .menu' : 'menu',
+    'dblclick .footer .up'   : 'previousPage',
+    'dblclick .footer .down' : 'nextPage',
+    'dblclick .footer .menu' : 'menu'
   },
   
   initialize: function(options) {
