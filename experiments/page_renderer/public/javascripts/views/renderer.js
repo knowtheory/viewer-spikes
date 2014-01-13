@@ -1,6 +1,6 @@
 DC.view.Renderer = DC.Backbone.View.extend({
   className: 'renderer',
-  SCROLL_THROTTLE: 100,
+  SCROLL_THROTTLE: 500,
   initialize: function(options) { 
     this.createSubviews();
 
