@@ -19,9 +19,10 @@ DC.view.Page = DC.Backbone.View.extend({
     return this;
   },
   
-  calculateDimensions: function() {
+  calculateHeight: function() {
+    // should include header height.
     this.dimensions.height = this.model.get('height') + this.margin*2;
-    return this.dimensions;
+    return this.dimensions.height;
   },
 
   isLoaded: function() {
