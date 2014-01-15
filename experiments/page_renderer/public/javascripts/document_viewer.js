@@ -5,9 +5,6 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     'click .footer .up'   : 'previousPage',
     'click .footer .down' : 'nextPage',
     'click .footer .menu' : 'menu',
-    'dblclick .footer .up'   : 'previousPage',
-    'dblclick .footer .down' : 'nextPage',
-    'dblclick .footer .menu' : 'menu'
   },
   
   initialize: function(options) {
@@ -60,11 +57,13 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   unload: function() {
   },
   
-  nextPage: function() {
+  nextPage: function(e) {
+    e.preventDefault();
     this.renderer.jump(this.renderer.currentPage + 1);
   },
   
-  previousPage: function() {
+  previousPage: function(e) {
+    e.preventDefault();
     this.renderer.jump(this.renderer.currentPage - 1);
   },
   
