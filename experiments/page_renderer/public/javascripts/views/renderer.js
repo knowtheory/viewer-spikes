@@ -36,12 +36,13 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   jump: function(pageNumber) {
+    console.log(pageNumber);
     var page = DC._.find(this.pages.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
     if (!page) return NaN;
-    var jumpOffset = this.$('.backdrop').scrollTop() + page.$el.offset().top;
-    var fudge = 10;
-    this.$('.backdrop').scrollTop(jumpOffset - fudge);
-    return jumpOffset;
+    var fudge = DC.view.Page.prototype.margin;
+    var position = page.dimensions.top - fudge;
+    this.$('.backdrop').scrollTop(position);
+    return position;
   },
   
   announceScroll: function(){ 
