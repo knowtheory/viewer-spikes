@@ -42,6 +42,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     var fudge = DC.view.Page.prototype.margin;
     var position = page.dimensions.top - fudge;
     this.$('.backdrop').scrollTop(position);
+    this.identifyCurrentPage();
     return position;
   },
   

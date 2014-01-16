@@ -15015,7 +15015,7 @@ DC.model.Note = DC.Backbone.Model.extend({});
 
 DC.model.NoteSet = DC.Backbone.Collection.extend({
   model: DC.model.Note,
-  onPage: function(pageNumber) { return this.where({'page': pageNumber}); }
+  onPage: function(pageNumber) { return this.where({'page': pageNumber}); } // make this return a shadow collection.
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
@@ -15072,9 +15072,6 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
     'click .footer .up'   : 'previousPage',
     'click .footer .down' : 'nextPage',
     'click .footer .menu' : 'menu',
-    'dblclick .footer .up'   : 'previousPage',
-    'dblclick .footer .down' : 'nextPage',
-    'dblclick .footer .menu' : 'menu'
   },
   
   initialize: function(options) {
@@ -15127,11 +15124,13 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   unload: function() {
   },
   
-  nextPage: function() {
+  nextPage: function(e) {
+    e.preventDefault();
     this.renderer.jump(this.renderer.currentPage + 1);
   },
   
-  previousPage: function() {
+  previousPage: function(e) {
+    e.preventDefault();
     this.renderer.jump(this.renderer.currentPage - 1);
   },
   
@@ -15158,7 +15157,29 @@ DC._.extend(DV, {
   
   An overlay should keep track of whether it, and its children should be loaded or not.
   
-  Should notes be an extractable/reusable component?
+  # Comments
+  
+  The production document-viewer uses page number + region's top y position to sort notes.
+  As a consequence, regions are stacked using the order that notes views are inserted into
+  the document.
+  
+  
+  
+  # Concerns
+
+  * Should notes be an extractable/reusable component?
+  * Should it be possible for multiple overlays to be visible at one time?  If so... i think there needs to be a single rendering list for all regions.
+  * Pages need after create and before destroy hooks.
+  
+  methods of communication:
+    1.  direct reference
+        After creation, overlays are added to an overlay collection that each page
+        maintains.  Upon load, unload, render the page iterates the collection and asks
+        each overlay to do the same.
+        
+    2.  event-based message passing
+        When an overlay is created, it is passed a reference to its page.  It subscribes
+        to the page's load/unload/render events.  Pages know nothing about overlays.
 */
 
 DC.view.Note = DC.Backbone.View.extend({
@@ -15198,6 +15219,7 @@ DC.view.NoteOverlay = DC.view.PageOverlay.extend({
     
   }
 });
+
 DC.view.Overview = DC.Backbone.View.extend({
   className: 'overview',
   
@@ -15256,9 +15278,10 @@ DC.view.Page = DC.Backbone.View.extend({
     return this;
   },
   
-  calculateDimensions: function() {
+  calculateHeight: function() {
+    // should include header height.
     this.dimensions.height = this.model.get('height') + this.margin*2;
-    return this.dimensions;
+    return this.dimensions.height;
   },
 
   isLoaded: function() {
@@ -15392,7 +15415,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   calculatePagePositions: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
     return DC._.reduce(this.pageViews, function(backdropHeight, page){
-      page.calculateDimensions();
+      page.calculateHeight();
       page.dimensions.top = backdropHeight;
       return backdropHeight + page.dimensions.height;
     }, startingMargin);
@@ -15449,12 +15472,14 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
   
   jump: function(pageNumber) {
+    console.log(pageNumber);
     var page = DC._.find(this.pages.pageViews, function(page) { return page.model.get('pageNumber') == pageNumber; });
     if (!page) return NaN;
-    var jumpOffset = this.$('.backdrop').scrollTop() + page.$el.offset().top;
-    var fudge = 10;
-    this.$('.backdrop').scrollTop(jumpOffset - fudge);
-    return jumpOffset;
+    var fudge = DC.view.Page.prototype.margin;
+    var position = page.dimensions.top - fudge;
+    this.$('.backdrop').scrollTop(position);
+    this.identifyCurrentPage();
+    return position;
   },
   
   announceScroll: function(){ 
