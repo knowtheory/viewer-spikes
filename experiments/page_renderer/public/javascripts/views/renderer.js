@@ -72,7 +72,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
   identifyCurrentPage: function() {
     // Calculate which pages are visible based their height/offset
     // compared to the visible container
-    var visiblePages = DC._.filter(this.pages.pageViews, this.isPageVisible, this);
+    var visiblePages = DC._.filter(this.pages.pageViews, this.pageVisibility, this);
 
     if (visiblePages.length > 0) {
       var middleId = Math.floor(visiblePages.length / 2);
@@ -83,20 +83,56 @@ DC.view.Renderer = DC.Backbone.View.extend({
     }
   },
   
-  isPageVisible: function(page) {
+  pageVisibility: function(page) {
     var pageHeight = page.dimensions.height;
     // offsets relative to parent container
     var pageTop    = page.dimensions.top;
     var pageBottom = pageTop + pageHeight;
     
     var containerTop    = this.backdrop.scrollTop();
-    var containerBottom = containerTop + this.$el.height();
+    var containerHeight = this.$el.height();
+    var containerBottom = containerTop + containerHeight;
     
     // Visibility is defined as the intersection of a page's height/dimensions
     // and the view port's height/dimensions.
     //
     // A page is visible when its bottom is below the container top and
     // its top is above the container bottom
+    
+    /* possible circumstances:
+    
+      pageHeight > containerHeight
+        
+        // whole page can't fit on screen.
+        // only need to consider the pageTop to containerBottom OR 
+        // the pageBottom to containerTop relationship
+        
+      pageHeight <= containerHeight
+        
+        // if a page can fit entirely onto the screen, then we care about several things.
+        
+        // is page 100% visible?
+        // Check if both the top and bottom of the page contained within the top and bottom of the screen.
+        pageTop > containerTop && pageBottom < containerBottom // => 100% visibility
+        // is the page offscreen?
+        pageBottom < containerTop || pageTop > containerBottom
+        
+      
+      // pageTop is above containerTop, pageBottom is above containerTop (page is off screen)
+      pageTop < containerTop && pageBottom < containerTop 
+      pageBottom < containerTop
+      // pageTop is below containerBottom, pageBottom is below containerBottom (page is off screen)
+      pageTop > containerBottom && pageBottom > containerBottom
+      pageTop > containerBottom
+        
+      // pageTop is above containerTop, pageBottom is below containerTop (page is partially on screen)
+      pageTop < containerTop && pageBottom > containerTop
+      // pageTop is 
+      
+    */
+    var underTop    = pageBottom - containerTop;
+    var aboveBottom = containerBottom - pageTop;
+    if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight); }
     var visibility = ( pageBottom > containerTop ) && ( pageTop < containerBottom );
     return visibility;
   }

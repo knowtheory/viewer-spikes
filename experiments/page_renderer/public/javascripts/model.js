@@ -33,7 +33,7 @@ DC.model.Note = DC.Backbone.Model.extend({});
 
 DC.model.NoteSet = DC.Backbone.Collection.extend({
   model: DC.model.Note,
-  onPage: function(pageNumber) { return this.where({'page': pageNumber}); } // make this return a shadow collection.
+  onPage: function(pageNumber) { return this.where({'page': pageNumber}); } // make this return a shadow
 });
 
 DC.model.Page = DC.Backbone.Model.extend({

@@ -4,5 +4,5 @@
 <% pages.each(function(page, pageIndex) { 
   var pageCount  = pages.length;
 %>
-<div class="page<%= (pageIndex % 2) ? ' even' : '' %>" style="width: 100%;position: absolute; top:<%= (100*pageIndex/pageCount) %>%; height:<%= (100/pageCount) %>%"></div>
+<div class="page<%= (pageIndex % 2) ? ' even' : '' %>" style="top:<%= (100*pageIndex/pageCount) %>%; height:<%= (100/pageCount) %>%"></div>
 <% }); %>
