@@ -15027,6 +15027,10 @@ DC.model.Page = DC.Backbone.Model.extend({
     hasRealDimensions: false
   },
   
+  initialize: function(attributes, options) {
+    this.on('change:height change:width', function(m,v,o){ console.log(m, v, o); } );
+  },
+  
   imageUrl: function(size){
     size = (size || 'normal');
     var template = this.constructor.prototype.defaults.image;
@@ -15042,7 +15046,7 @@ DC.model.Page = DC.Backbone.Model.extend({
   
   aspectRatio: function() { return this.get('height') / this.get('width'); },
 
-  orientation: function() { return (this.aspectRatio > 1 ? 'portrait' : 'landscape'); },
+  orientation: function() { return (this.aspectRatio() > 1 ? 'portrait' : 'landscape'); },
   
   naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
   
@@ -15377,7 +15381,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   initializeSubviews: function() {
     // create a page view for each model.
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
-    var initializePage = function(page){
+    var subscribeToResize = function(page){
       this.listenTo(page, 'resize', function(heightDifference){
         if (heightDifference > 0) { 
           this.calculatePagePositions();
@@ -15395,7 +15399,7 @@ DC.view.PageList = DC.Backbone.View.extend({
       });
     };
     
-    DC._.each(this.pageViews, initializePage, this);
+    DC._.each(this.pageViews, subscribeToResize, this);
     this.matteHeight = this.height();
   },
   

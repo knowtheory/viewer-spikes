@@ -16,7 +16,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   initializeSubviews: function() {
     // create a page view for each model.
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
-    var initializePage = function(page){
+    var subscribeToResize = function(page){
       this.listenTo(page, 'resize', function(heightDifference){
         if (heightDifference > 0) { 
           this.calculatePagePositions();
@@ -34,7 +34,7 @@ DC.view.PageList = DC.Backbone.View.extend({
       });
     };
     
-    DC._.each(this.pageViews, initializePage, this);
+    DC._.each(this.pageViews, subscribeToResize, this);
     this.matteHeight = this.height();
   },
   
