@@ -58,9 +58,13 @@ DC.model.Page = DC.Backbone.Model.extend({
     return template.replace(/\{page\}/, this.get('pageNumber'));
   },
   
-  orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
+  aspectRatio: function() { return this.get('height') / this.get('width'); },
+
+  orientation: function() { return (this.aspectRatio > 1 ? 'portrait' : 'landscape'); },
   
-  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
+  
+  proportionalDimensions: function() { return { height: this.aspectRatio(), width: 1 }; }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({

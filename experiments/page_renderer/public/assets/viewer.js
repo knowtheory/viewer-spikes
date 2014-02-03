@@ -15040,9 +15040,13 @@ DC.model.Page = DC.Backbone.Model.extend({
     return template.replace(/\{page\}/, this.get('pageNumber'));
   },
   
-  orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
+  aspectRatio: function() { return this.get('height') / this.get('width'); },
+
+  orientation: function() { return (this.aspectRatio > 1 ? 'portrait' : 'landscape'); },
   
-  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
+  
+  proportionalDimensions: function() { return { height: this.aspectRatio(), width: 1 }; }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
@@ -15373,7 +15377,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   initializeSubviews: function() {
     // create a page view for each model.
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
-    DC._.each(this.pageViews, function(page){
+    var initializePage = function(page){
       this.listenTo(page, 'resize', function(heightDifference){
         if (heightDifference > 0) { 
           this.calculatePagePositions();
@@ -15389,15 +15393,10 @@ DC.view.PageList = DC.Backbone.View.extend({
           //this.$el.scrollTop(offset);
         }
       });
-    }, this);
+    };
+    
+    DC._.each(this.pageViews, initializePage, this);
     this.matteHeight = this.height();
-  },
-  
-  // ToDo: make this smarter, and just have it subtract the difference
-  // from the existing height, rather than recounting all the page heights.
-  resizeBackdrop: function(difference) {
-    this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.matteHeight});
   },
   
   render: function() {
@@ -15406,6 +15405,22 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.calculatePagePositions();
     this.placePages();
     return this;
+  },
+
+  loadPages: function(pageNumbers) {
+    //console.log(pageNumbers, DC.$('img').size());
+    DC._.each(this.pageViews, function(page){
+      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
+    });
+  },
+  
+  // Pixel based calculation functions
+  
+  // ToDo: make this smarter, and just have it subtract the difference
+  // from the existing height, rather than recounting all the page heights.
+  resizeBackdrop: function(difference) {
+    this.matteHeight = this.height();
+    this.$el.css({'padding-top': this.matteHeight});
   },
   
   placePages: function() {
@@ -15424,13 +15439,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   height: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
     return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
-  },
-  
-  loadPages: function(pageNumbers) {
-    //console.log(pageNumbers, DC.$('img').size());
-    DC._.each(this.pageViews, function(page){
-      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
-    });
   }
 });
 
@@ -15526,7 +15534,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     var pageBottom = pageTop + pageHeight;
     
     var containerTop    = this.backdrop.scrollTop();
-    var containerHeight = this.$el.height()
+    var containerHeight = this.$el.height();
     var containerBottom = containerTop + containerHeight;
     
     // Visibility is defined as the intersection of a page's height/dimensions
@@ -15568,7 +15576,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     */
     var underTop    = pageBottom - containerTop;
     var aboveBottom = containerBottom - pageTop;
-    if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight)};
+    if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight); }
     var visibility = ( pageBottom > containerTop ) && ( pageTop < containerBottom );
     return visibility;
   }

@@ -16,7 +16,7 @@ DC.view.PageList = DC.Backbone.View.extend({
   initializeSubviews: function() {
     // create a page view for each model.
     this.pageViews = this.collection.map( function( pageModel ){ return new DC.view.Page({model: pageModel}); } );
-    DC._.each(this.pageViews, function(page){
+    var initializePage = function(page){
       this.listenTo(page, 'resize', function(heightDifference){
         if (heightDifference > 0) { 
           this.calculatePagePositions();
@@ -32,15 +32,10 @@ DC.view.PageList = DC.Backbone.View.extend({
           //this.$el.scrollTop(offset);
         }
       });
-    }, this);
+    };
+    
+    DC._.each(this.pageViews, initializePage, this);
     this.matteHeight = this.height();
-  },
-  
-  // ToDo: make this smarter, and just have it subtract the difference
-  // from the existing height, rather than recounting all the page heights.
-  resizeBackdrop: function(difference) {
-    this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.matteHeight});
   },
   
   render: function() {
@@ -49,6 +44,22 @@ DC.view.PageList = DC.Backbone.View.extend({
     this.calculatePagePositions();
     this.placePages();
     return this;
+  },
+
+  loadPages: function(pageNumbers) {
+    //console.log(pageNumbers, DC.$('img').size());
+    DC._.each(this.pageViews, function(page){
+      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
+    });
+  },
+  
+  // Pixel based calculation functions
+  
+  // ToDo: make this smarter, and just have it subtract the difference
+  // from the existing height, rather than recounting all the page heights.
+  resizeBackdrop: function(difference) {
+    this.matteHeight = this.height();
+    this.$el.css({'padding-top': this.matteHeight});
   },
   
   placePages: function() {
@@ -67,12 +78,5 @@ DC.view.PageList = DC.Backbone.View.extend({
   height: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
     return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
-  },
-  
-  loadPages: function(pageNumbers) {
-    //console.log(pageNumbers, DC.$('img').size());
-    DC._.each(this.pageViews, function(page){
-      if (DC._.contains(pageNumbers, page.model.get('pageNumber'))) { page.load(); } else { page.unload(); }
-    });
   }
 });
