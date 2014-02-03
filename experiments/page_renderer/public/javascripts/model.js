@@ -60,7 +60,7 @@ DC.model.Page = DC.Backbone.Model.extend({
   
   aspectRatio: function() { return this.get('height') / this.get('width'); },
 
-  orientation: function() { return (this.aspectRatio > 1 ? 'portrait' : 'landscape'); },
+  orientation: function() { return (this.aspectRatio() > 1 ? 'portrait' : 'landscape'); },
   
   naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
   
