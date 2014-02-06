@@ -62,22 +62,44 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.pages { }
+.backdrop.zoom-50  { width: 50%; }
+.backdrop.zoom-66  { width: 66%; }
+.backdrop.zoom-75  { width: 75%; }
+.backdrop.zoom-100 { width: 100%; }
+.backdrop.zoom-125 { width: 125%; }
+.backdrop.zoom-133 { width: 133%; }
+.backdrop.zoom-150 { width: 150%; }
 
-  .pages .page { 
+.pages {
+  height: 0;
+  position: relative;
+  width: 100%;
+}
+
+  .pages .page {
+    height: 0;
     width: 100%;
     position: absolute;
   }
 
-  .pages .page_number { float: left; }
-
   .pages .matte {
-    border: black 1px solid;
-    margin-left: 45px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 96%;
+    margin: 0 2%;
+  }
+  
+  .page .content {
+    outline: black 1px solid;
+    position: absolute;
+    width: 100%;
   }
 
   .pages .matte img { 
     pointer-events: none;
+    width: 100%;
   }
 
 .overview {
