@@ -68,11 +68,12 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   calculatePagePositions: function() {
     var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(backdropHeight, page){
+    var tallyPageHeights = function(backdropHeight, page){
       page.calculateHeight();
       page.dimensions.top = backdropHeight;
       return backdropHeight + page.dimensions.height;
-    }, startingMargin);
+    };
+    return DC._.reduce(this.pageViews, tallyPageHeights, startingMargin);
   },
   
   height: function() {
