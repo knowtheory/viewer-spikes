@@ -132,7 +132,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     */
     var underTop    = pageBottom - containerTop;
     var aboveBottom = containerBottom - pageTop;
-    if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight); }
+    //if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight); }
     var visibility = ( pageBottom > containerTop ) && ( pageTop < containerBottom );
     return visibility;
   }
