@@ -41,7 +41,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   render: function() {
     this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.resizeBackdrop();
-    this.calculatePagePositions();
     this.placePages();
     return this;
   },
@@ -53,31 +52,53 @@ DC.view.PageList = DC.Backbone.View.extend({
     });
   },
   
-  // Pixel based calculation functions
+  // total document height calculated as a fraction of viewer width
+  aspectRatio: function(){
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.aspectRatio(); }, 0, this);
+  },
   
-  // ToDo: make this smarter, and just have it subtract the difference
-  // from the existing height, rather than recounting all the page heights.
-  resizeBackdrop: function(difference) {
+  height: function() { return this.aspectRatio() * 100; },
+  
+  resizeBackdrop: function() {
     this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.matteHeight});
+    this.$el.css({'padding-top': this.mattHeight + '%'});
   },
   
   placePages: function() {
-    DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
-  },
-  
-  calculatePagePositions: function() {
-    var startingMargin = DC.view.Page.prototype.margin*2;
-    var tallyPageHeights = function(backdropHeight, page){
-      page.calculateHeight();
-      page.dimensions.top = backdropHeight;
-      return backdropHeight + page.dimensions.height;
-    };
-    return DC._.reduce(this.pageViews, tallyPageHeights, startingMargin);
-  },
-  
-  height: function() {
-    var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
+    // Ask each page for 
+    DC._.reduce(this.pageViews, function(runningAspectRatioTally, page){
+      page.setMatteHeight();
+      page.setPosition(100 * runningAspectRatioTally / this.matteHeight);
+      runningAspectRatioTally += page.aspectRatio();
+      return runningAspectRatioTally;
+    }, 0, this);
   }
+  
+  //// Pixel based calculation functions
+  //
+  //// ToDo: make this smarter, and just have it subtract the difference
+  //// from the existing height, rather than recounting all the page heights.
+  //resizeBackdrop: function(difference) {
+  //  this.matteHeight = this.height();
+  //  this.$el.css({'height': this.matteHeight});
+  //}
+  //
+  //placePages: function() {
+  //  DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
+  //},
+  //
+  //calculatePagePositions: function() {
+  //  var startingMargin = DC.view.Page.prototype.margin*2;
+  //  var tallyPageHeights = function(backdropHeight, page){
+  //    page.calculateHeight();
+  //    page.dimensions.top = backdropHeight;
+  //    return backdropHeight + page.dimensions.height;
+  //  };
+  //  return DC._.reduce(this.pageViews, tallyPageHeights, startingMargin);
+  //},
+  //
+  //height: function() {
+  //  var startingMargin = DC.view.Page.prototype.margin*2;
+  //  return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
+  //}
 });

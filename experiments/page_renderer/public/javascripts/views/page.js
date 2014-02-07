@@ -7,7 +7,10 @@ DC.view.Page = DC.Backbone.View.extend({
     //this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
-    this.dimensions = { top: 0, height: 0 };
+    // Dimensions are calculated as a fraction of width
+    this.dimensions = this.model.proportionalDimensions();
+    // Positions are calculated as a percentage of parent container
+    this.position = { top: 0 };
     
     //this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
     //this.listenTo(this.model, 'change:width',  this.ensureAspectRatio);
@@ -17,12 +20,6 @@ DC.view.Page = DC.Backbone.View.extend({
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
     //this.$el.css({height: this.dimensions.height, top: this.dimensions.top});
     return this;
-  },
-  
-  calculateHeight: function() {
-    // should include header height.
-    this.dimensions.height = this.model.get('height') + this.margin*2;
-    return this.dimensions.height;
   },
 
   isLoaded: function() { return this.model.get('imageLoaded'); },
@@ -57,8 +54,16 @@ DC.view.Page = DC.Backbone.View.extend({
     return this.model.aspectRatio() + headerAspectRatio;
   },
   
+  height: function() { return DC._(this.aspectRatio()).asPercentOf(this.dimensions.width); },
+  
   setMatteHeight: function() {
-    this.$('.matte').css({'padding-top': this.height() + '%'});
+    this.dimensions.height = this.height();
+    this.$('.matte').css({'padding-top': this.dimensions.height + '%'});
+  },
+  
+  setPosition: function(position) {
+    this.position.top = position;
+    this.$el.css({'top': position + '%'});
   },
   
   // Once an page image is loaded, store its natural dimensions

@@ -14980,6 +14980,23 @@ DC.jQuery   = jQuery.noConflict();
 DC.$        = DC.jQuery;
 DV          = DC;
 
+DC._.mixin({
+  asFractionOf: function(numerator, denominator, suffix){
+    var result = numerator / denominator;
+    if (suffix) { result += suffix; }
+    return result;
+  },
+
+  // Take advantage of underscore's OO wrapper to use asPercentOf
+  // as an infix operation. DC._(5).asPercentOf(10) // => 50
+  asPercentOf: function(numerator, denominator, suffix){
+    var result = this.asFractionOf(numerator, denominator) * 100;
+    if (suffix) { result += suffix; }
+    return result;
+  }
+});
+
+DC._.extend(DC.lib, {});
 DC.model.Document = DC.Backbone.Model.extend({
   initialize: function(attributes, options) {
     attributes = (attributes || {});
@@ -15027,10 +15044,6 @@ DC.model.Page = DC.Backbone.Model.extend({
     hasRealDimensions: false
   },
   
-  initialize: function(attributes, options) {
-    this.on('change:height change:width', function(m,v,o){ console.log(m, v, o); } );
-  },
-  
   imageUrl: function(size){
     size = (size || 'normal');
     var template = this.constructor.prototype.defaults.image;
@@ -15044,7 +15057,7 @@ DC.model.Page = DC.Backbone.Model.extend({
     return template.replace(/\{page\}/, this.get('pageNumber'));
   },
   
-  aspectRatio: function() { return this.get('height') / this.get('width'); },
+  aspectRatio: function() { return DC._(this.get('height')).asFractionOf(this.get('width')); },
 
   orientation: function() { return (this.aspectRatio() > 1 ? 'portrait' : 'landscape'); },
   
@@ -15266,18 +15279,21 @@ DC.view.Overview = DC.Backbone.View.extend({
 });
 
 DC.view.Page = DC.Backbone.View.extend({
-  margin:    10,
+  margin:    2,
   className: 'page',
   initialize: function(options) {
     // Debounce ensureAspectRatio, because we want to listen for changes
     // to both heigth and width, but only fire once if both have been set.
-    this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
+    //this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
-    this.dimensions = { top: 0, height: 0 };
+    // Dimensions are calculated as a fraction of width
+    this.dimensions = this.model.proportionalDimensions();
+    // Positions are calculated as a percentage of parent container
+    this.position = { top: 0 };
     
-    this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
-    this.listenTo(this.model, 'change:width',  this.ensureAspectRatio);
+    //this.listenTo(this.model, 'change:height', this.ensureAspectRatio);
+    //this.listenTo(this.model, 'change:width',  this.ensureAspectRatio);
   },
 
   render: function() {
@@ -15285,27 +15301,19 @@ DC.view.Page = DC.Backbone.View.extend({
     //this.$el.css({height: this.dimensions.height, top: this.dimensions.top});
     return this;
   },
-  
-  calculateHeight: function() {
-    // should include header height.
-    this.dimensions.height = this.model.get('height') + this.margin*2;
-    return this.dimensions.height;
-  },
 
-  isLoaded: function() {
-    return this.model.get('imageLoaded');
-  },
+  isLoaded: function() { return this.model.get('imageLoaded'); },
 
   load: function() {
     if (this.isLoaded()) return;
     //console.log("Loading", this.model.get('pageNumber'));
     
-    this.$('.matte').html('<img></img>');
+    this.$('.content').html('<img></img>');
     this.image = this.$('img');
     this.image.attr('src', this.model.imageUrl());
     this.image.load(DC._.bind(function(){
       this.cacheNaturalDimensions();
-      this.ensureAspectRatio();
+      //this.ensureAspectRatio();
       var attrs = {'imageLoaded': true};
       if (!this.model.get('hasRealDimensions')) { attrs.hasRealDimensions = true; }
       this.model.set(attrs);
@@ -15321,44 +15329,64 @@ DC.view.Page = DC.Backbone.View.extend({
     this.model.set('imageLoaded', false);
   },
   
-  setImageDimensions: function(dimensions) {
-    var intendedWidth    = dimensions.width;
-    var intendedHeight   = dimensions.height;
-    var currentHeight    = this.$('.matte').height();
-    var heightDifference = currentHeight - intendedHeight;
-
-    this.$('.matte').attr('style', 'width: '+intendedWidth+'px; height: '+intendedHeight+'px;' );
-    if (heightDifference !== 0) { this.trigger('resize', heightDifference); }
-    //this.image.attr({ width: width + 'px', height: height + 'px' });
+  aspectRatio: function(){
+    var headerAspectRatio = 0;
+    return this.model.aspectRatio() + headerAspectRatio;
   },
-
-  ensureAspectRatio: function() {
-    //console.log("ensuring Aspect Ratio!");
-    this.setImageDimensions(this.constrainedImageDimensions(700));
+  
+  height: function() { return DC._(this.aspectRatio()).asPercentOf(this.dimensions.width); },
+  
+  setMatteHeight: function() {
+    this.dimensions.height = this.height();
+    this.$('.matte').css({'padding-top': this.dimensions.height + '%'});
   },
-
+  
+  setPosition: function(position) {
+    this.position.top = position;
+    this.$el.css({'top': position + '%'});
+  },
+  
+  // Once an page image is loaded, store its natural dimensions
+  // to provide accurate calculations of its aspect ratio and
+  // positioning (as opposed to using the default assumed dimensions)
   cacheNaturalDimensions: function() {
-    var unstyledImage = DC.$(new Image());
     var model = this.model;
+    var unstyledImage = DC.$(new Image());
     unstyledImage.load(function(){ 
       if ( model.get('height') != this.height || model.get('width') != this.width ) {
         model.set({ height: this.height, width:  this.width });
       }
     });
     unstyledImage.attr('src', model.imageUrl());
-  },
-  
-  constrainedImageDimensions: function(limit, constrained_edge) {
-    constrained_edge = (constrained_edge || 'width');
-    if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
-    if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
-    var other_edge = (constrained_edge == 'width' ? 'height' : 'width');
-    var dimensions = this.model.naturalDimensions();
-    var scale = dimensions[constrained_edge] / limit; // smaller than 1 when limit is larger; greater than 1 when limit is smaller.
-    dimensions[constrained_edge] = limit;
-    dimensions[other_edge] = Math.floor(dimensions[other_edge] / scale);
-    return dimensions;
   }
+  
+  //setImageDimensions: function(dimensions) {
+  //  var intendedWidth    = dimensions.width;
+  //  var intendedHeight   = dimensions.height;
+  //  var currentHeight    = this.$('.matte').height();
+  //  var heightDifference = currentHeight - intendedHeight;
+  //
+  //  this.$('.matte').attr('style', 'width: '+intendedWidth+'px; height: '+intendedHeight+'px;' );
+  //  if (heightDifference !== 0) { this.trigger('resize', heightDifference); }
+  //  //this.image.attr({ width: width + 'px', height: height + 'px' });
+  //},
+  //
+  //ensureAspectRatio: function() {
+  //  //console.log("ensuring Aspect Ratio!");
+  //  this.setImageDimensions(this.constrainedImageDimensions(700));
+  //},
+  //
+  //constrainedImageDimensions: function(limit, constrained_edge) {
+  //  constrained_edge = (constrained_edge || 'width');
+  //  if (!DC._.isNumber(limit)){ console.log("limit must be a number", limit); }
+  //  if (!constrained_edge.match(/width|height/)){ console.log("constrained_edge must be 'width' or 'height'", constrained_edge); return; }
+  //  var other_edge = (constrained_edge == 'width' ? 'height' : 'width');
+  //  var dimensions = this.model.naturalDimensions();
+  //  var scale = dimensions[constrained_edge] / limit; // smaller than 1 when limit is larger; greater than 1 when limit is smaller.
+  //  dimensions[constrained_edge] = limit;
+  //  dimensions[other_edge] = Math.floor(dimensions[other_edge] / scale);
+  //  return dimensions;
+  //}
   
   
 });
@@ -15406,7 +15434,6 @@ DC.view.PageList = DC.Backbone.View.extend({
   render: function() {
     this.$el.html(DC._.map(this.pageViews, function(view){ return view.render().el; }));
     this.resizeBackdrop();
-    this.calculatePagePositions();
     this.placePages();
     return this;
   },
@@ -15418,32 +15445,55 @@ DC.view.PageList = DC.Backbone.View.extend({
     });
   },
   
-  // Pixel based calculation functions
+  // total document height calculated as a fraction of viewer width
+  aspectRatio: function(){
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.aspectRatio(); }, 0, this);
+  },
   
-  // ToDo: make this smarter, and just have it subtract the difference
-  // from the existing height, rather than recounting all the page heights.
-  resizeBackdrop: function(difference) {
+  height: function() { return this.aspectRatio() * 100; },
+  
+  resizeBackdrop: function() {
     this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.matteHeight});
+    this.$el.css({'padding-top': this.mattHeight + '%'});
   },
   
   placePages: function() {
-    DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
-  },
-  
-  calculatePagePositions: function() {
-    var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(backdropHeight, page){
-      page.calculateHeight();
-      page.dimensions.top = backdropHeight;
-      return backdropHeight + page.dimensions.height;
-    }, startingMargin);
-  },
-  
-  height: function() {
-    var startingMargin = DC.view.Page.prototype.margin*2;
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
+    // Ask each page for 
+    DC._.reduce(this.pageViews, function(runningAspectRatioTally, page){
+      page.setMatteHeight();
+      page.setPosition(100 * runningAspectRatioTally / this.matteHeight);
+      runningAspectRatioTally += page.aspectRatio();
+      return runningAspectRatioTally;
+    }, 0, this);
   }
+  
+  //// Pixel based calculation functions
+  //
+  //// ToDo: make this smarter, and just have it subtract the difference
+  //// from the existing height, rather than recounting all the page heights.
+  //resizeBackdrop: function(difference) {
+  //  this.matteHeight = this.height();
+  //  this.$el.css({'height': this.matteHeight});
+  //}
+  //
+  //placePages: function() {
+  //  DC._.each(this.pageViews, function(page){ page.$el.css(page.dimensions); });
+  //},
+  //
+  //calculatePagePositions: function() {
+  //  var startingMargin = DC.view.Page.prototype.margin*2;
+  //  var tallyPageHeights = function(backdropHeight, page){
+  //    page.calculateHeight();
+  //    page.dimensions.top = backdropHeight;
+  //    return backdropHeight + page.dimensions.height;
+  //  };
+  //  return DC._.reduce(this.pageViews, tallyPageHeights, startingMargin);
+  //},
+  //
+  //height: function() {
+  //  var startingMargin = DC.view.Page.prototype.margin*2;
+  //  return DC._.reduce(this.pageViews, function(total, page){ return total + page.dimensions.height; }, startingMargin, this);
+  //}
 });
 
 DC.view.Renderer = DC.Backbone.View.extend({
@@ -15502,7 +15552,6 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
 
   loadVisiblePages: function(e){
-    //console.log(this.height());
     this.identifyCurrentPage();
 
     var loadRange = 5;
@@ -15513,6 +15562,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     // When scrolling to the end of the document, ensure ceiling is capped at the page count + 1 
     // (N.B. the +1 is for _.range which excludes the endpoint).
     var ceiling = (( this.currentPage + loadRange ) >= this.pages.collection.size()) ? this.pages.collection.size()+1 : (this.currentPage + loadRange);
+    //console.log(floor, ceiling);
     var range   = DC._.range(floor, ceiling);
     this.pages.loadPages(range, true);
   },
@@ -15526,7 +15576,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
       var middleId = Math.floor(visiblePages.length / 2);
       this.currentPage = visiblePages[middleId].model.get('pageNumber');
       this.trigger("currentPage", this.currentPage);
-      //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
+      console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
       //console.log(this.currentPage);
     }
   },
@@ -15580,7 +15630,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     */
     var underTop    = pageBottom - containerTop;
     var aboveBottom = containerBottom - pageTop;
-    if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight); }
+    //if ( underTop > 0 && aboveBottom > 0 ) { console.log(page.model.get('pageNumber'), underTop/pageHeight, aboveBottom/pageHeight); }
     var visibility = ( pageBottom > containerTop ) && ( pageTop < containerBottom );
     return visibility;
   }

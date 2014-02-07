@@ -54,7 +54,6 @@ DC.view.Renderer = DC.Backbone.View.extend({
   },
 
   loadVisiblePages: function(e){
-    //console.log(this.height());
     this.identifyCurrentPage();
 
     var loadRange = 5;
@@ -65,6 +64,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
     // When scrolling to the end of the document, ensure ceiling is capped at the page count + 1 
     // (N.B. the +1 is for _.range which excludes the endpoint).
     var ceiling = (( this.currentPage + loadRange ) >= this.pages.collection.size()) ? this.pages.collection.size()+1 : (this.currentPage + loadRange);
+    //console.log(floor, ceiling);
     var range   = DC._.range(floor, ceiling);
     this.pages.loadPages(range, true);
   },
@@ -78,7 +78,7 @@ DC.view.Renderer = DC.Backbone.View.extend({
       var middleId = Math.floor(visiblePages.length / 2);
       this.currentPage = visiblePages[middleId].model.get('pageNumber');
       this.trigger("currentPage", this.currentPage);
-      //console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
+      console.log(DC._.map(visiblePages, function(v){ return v.model.get('pageNumber'); }));
       //console.log(this.currentPage);
     }
   },
