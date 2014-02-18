@@ -14997,6 +14997,7 @@ DC._.mixin({
 });
 
 DC._.extend(DC.lib, {});
+
 DC.model.Document = DC.Backbone.Model.extend({
   initialize: function(attributes, options) {
     attributes = (attributes || {});
@@ -15032,7 +15033,7 @@ DC.model.Note = DC.Backbone.Model.extend({});
 
 DC.model.NoteSet = DC.Backbone.Collection.extend({
   model: DC.model.Note,
-  onPage: function(pageNumber) { return this.where({'page': pageNumber}); } // make this return a shadow
+  onPage: function(pageNumber) { return this.where({'page': pageNumber}); } // make this return a shadow collection
 });
 
 DC.model.Page = DC.Backbone.Model.extend({
@@ -15287,7 +15288,7 @@ DC.view.Page = DC.Backbone.View.extend({
     //this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
-    // Dimensions are calculated as a fraction of width
+    // Dimensions are calculated as a percentage of width
     this.dimensions = this.model.proportionalDimensions();
     // Positions are calculated as a percentage of parent container
     this.position = { top: 0 };
@@ -15297,8 +15298,9 @@ DC.view.Page = DC.Backbone.View.extend({
   },
 
   render: function() {
-    this.$el.html(JST['page']({ page: this.model.toJSON() }));
-    //this.$el.css({height: this.dimensions.height, top: this.dimensions.top});
+    this.$el.html(JST['page']());
+    // simulate the height of the page using padding-top trick.
+    this.$el.css({ 'padding-top': DC._(this.dimensions.height).asPercentOf(this.dimensions.width, '%') });
     return this;
   },
 
@@ -15338,7 +15340,7 @@ DC.view.Page = DC.Backbone.View.extend({
   
   setMatteHeight: function() {
     this.dimensions.height = this.height();
-    this.$('.matte').css({'padding-top': this.dimensions.height + '%'});
+    this.$('.matte').css({'padding-top': DC._(this.dimensions.height).asPercentOf(this.dimensions.width, '%')});
   },
   
   setPosition: function(position) {
@@ -15447,22 +15449,25 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   // total document height calculated as a fraction of viewer width
   aspectRatio: function(){
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.aspectRatio(); }, 0, this);
+    return this.height() / 100;
   },
   
-  height: function() { return this.aspectRatio() * 100; },
+  height: function() { 
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height() + 2; }, 0, this);
+  },
   
   resizeBackdrop: function() {
     this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.mattHeight + '%'});
+    this.$el.css({'padding-top': this.matteHeight + '%'});
   },
   
   placePages: function() {
     // Ask each page for 
     DC._.reduce(this.pageViews, function(runningAspectRatioTally, page){
-      page.setMatteHeight();
-      page.setPosition(100 * runningAspectRatioTally / this.matteHeight);
-      runningAspectRatioTally += page.aspectRatio();
+      //page.setMatteHeight();
+      var pageTop = 100 * runningAspectRatioTally / this.matteHeight;
+      page.setPosition(pageTop);
+      runningAspectRatioTally += page.height();
       return runningAspectRatioTally;
     }, 0, this);
   }
@@ -15584,11 +15589,12 @@ DC.view.Renderer = DC.Backbone.View.extend({
   pageVisibility: function(page) {
     var pageHeight = page.dimensions.height;
     // offsets relative to parent container
-    var pageTop    = page.dimensions.top;
+    var pageTop    = page.position.top;
     var pageBottom = pageTop + pageHeight;
     
-    var containerTop    = this.backdrop.scrollTop();
-    var containerHeight = this.$el.height();
+    var containerWidth  = this.backdrop.width();
+    var containerTop    = DC._(this.backdrop.scrollTop()).asPercentOf(containerWidth);
+    var containerHeight = DC._(this.$el.height()).asPercentOf(containerWidth);
     var containerBottom = containerTop + containerHeight;
     
     // Visibility is defined as the intersection of a page's height/dimensions
