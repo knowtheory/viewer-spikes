@@ -54,22 +54,25 @@ DC.view.PageList = DC.Backbone.View.extend({
   
   // total document height calculated as a fraction of viewer width
   aspectRatio: function(){
-    return DC._.reduce(this.pageViews, function(total, page){ return total + page.aspectRatio(); }, 0, this);
+    return this.height() / 100;
   },
   
-  height: function() { return this.aspectRatio() * 100; },
+  height: function() { 
+    return DC._.reduce(this.pageViews, function(total, page){ return total + page.height() + 2; }, 0, this);
+  },
   
   resizeBackdrop: function() {
     this.matteHeight = this.height();
-    this.$el.css({'padding-top': this.mattHeight + '%'});
+    this.$el.css({'padding-top': this.matteHeight + '%'});
   },
   
   placePages: function() {
     // Ask each page for 
     DC._.reduce(this.pageViews, function(runningAspectRatioTally, page){
-      page.setMatteHeight();
-      page.setPosition(100 * runningAspectRatioTally / this.matteHeight);
-      runningAspectRatioTally += page.aspectRatio();
+      //page.setMatteHeight();
+      var pageTop = 100 * runningAspectRatioTally / this.matteHeight;
+      page.setPosition(pageTop);
+      runningAspectRatioTally += page.height();
       return runningAspectRatioTally;
     }, 0, this);
   }

@@ -7,7 +7,7 @@ DC.view.Page = DC.Backbone.View.extend({
     //this.ensureAspectRatio = DC._.bind(DC._.debounce(this.ensureAspectRatio, 10), this);
     this.cacheNaturalDimensions = DC._.bind(this.cacheNaturalDimensions, this);
     
-    // Dimensions are calculated as a fraction of width
+    // Dimensions are calculated as a percentage of width
     this.dimensions = this.model.proportionalDimensions();
     // Positions are calculated as a percentage of parent container
     this.position = { top: 0 };
@@ -18,7 +18,8 @@ DC.view.Page = DC.Backbone.View.extend({
 
   render: function() {
     this.$el.html(JST['page']({ page: this.model.toJSON() }));
-    //this.$el.css({height: this.dimensions.height, top: this.dimensions.top});
+    // simulate the height of the page using padding-top trick.
+    this.$el.css({ 'padding-top': DC._(this.dimensions.height).asPercentOf(this.dimensions.width, '%') });
     return this;
   },
 
@@ -58,7 +59,7 @@ DC.view.Page = DC.Backbone.View.extend({
   
   setMatteHeight: function() {
     this.dimensions.height = this.height();
-    this.$('.matte').css({'padding-top': this.dimensions.height + '%'});
+    this.$('.matte').css({'padding-top': DC._(this.dimensions.height).asPercentOf(this.dimensions.width, '%')});
   },
   
   setPosition: function(position) {
