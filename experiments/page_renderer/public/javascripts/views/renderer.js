@@ -86,11 +86,12 @@ DC.view.Renderer = DC.Backbone.View.extend({
   pageVisibility: function(page) {
     var pageHeight = page.dimensions.height;
     // offsets relative to parent container
-    var pageTop    = page.dimensions.top;
+    var pageTop    = page.position.top;
     var pageBottom = pageTop + pageHeight;
     
-    var containerTop    = this.backdrop.scrollTop();
-    var containerHeight = this.$el.height();
+    var containerWidth  = this.backdrop.width();
+    var containerTop    = DC._(this.backdrop.scrollTop()).asPercentOf(containerWidth);
+    var containerHeight = DC._(this.$el.height()).asPercentOf(containerWidth);
     var containerBottom = containerTop + containerHeight;
     
     // Visibility is defined as the intersection of a page's height/dimensions

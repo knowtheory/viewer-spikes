@@ -17,7 +17,7 @@ DC.view.Page = DC.Backbone.View.extend({
   },
 
   render: function() {
-    this.$el.html(JST['page']({ page: this.model.toJSON() }));
+    this.$el.html(JST['page']());
     // simulate the height of the page using padding-top trick.
     this.$el.css({ 'padding-top': DC._(this.dimensions.height).asPercentOf(this.dimensions.width, '%') });
     return this;
