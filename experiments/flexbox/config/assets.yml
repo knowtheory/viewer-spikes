@@ -1,0 +1,25 @@
+embed_images: datauri
+template_function: DC._.template
+compress_assets: off
+
+javascripts:
+  viewer:
+    - public/javascripts/vendor/jquery-1.10.2.js
+    - public/javascripts/vendor/jquery-ui-1.10.3.custom.js
+    - public/javascripts/vendor/jquery.ui.touch-punch.js
+    - public/javascripts/vendor/underscore.js
+    - public/javascripts/vendor/backbone.js
+    - public/javascripts/namespace.js
+    - public/javascripts/model.js
+    - public/javascripts/document_viewer.js
+    - public/javascripts/views/*.js
+    
+  debugger:
+    - public/javascripts/debug.js
+  
+  templates:
+    - public/javascripts/templates/*.jst
+
+stylesheets:
+  viewer:
+    - public/stylesheets/*.css
