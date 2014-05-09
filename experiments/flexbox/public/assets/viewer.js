@@ -13259,3 +13259,181 @@ return jQuery;
   return Backbone;
 
 }));
+
+DC = {
+  model: {},
+  view:  {},
+  lib:   {}
+};
+DC.Backbone = Backbone.noConflict();
+DC._        = _.noConflict();
+DC.jQuery   = jQuery.noConflict();
+DC.$        = DC.jQuery;
+DV          = DC;
+
+DC.model.Document = DC.Backbone.Model.extend({
+  initialize: function(attributes, options) {
+    attributes = (attributes || {});
+    
+    // If attributes are passed in, initialize sub collections and models
+    // with that data.
+    this.pages     = DC.model.PageSet.createPages(attributes.pages);
+    this.resources = new DC.Backbone.Model(attributes.resources);
+    this.sections  = new DC.model.SectionSet(attributes.sections);
+    this.notes     = new DC.model.NoteSet(attributes.annotations);
+    
+    // Reactive behavior.  When a document's attributes are set
+    // propogate the data down into child collections and objects.
+    // Current behavior will simply overwrite existing data.
+    this.on( 'change:annotations', function( model, note_data ){    this.notes.reset(note_data); }, this );
+    this.on( 'change:sections',    function( model, section_data ){ this.sections.reset(section_data); }, this );
+    this.on( 'change:pages',       function( model, pageCount ){
+      var pageAttributes = DC._.map( DC._.range(0, pageCount), function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
+      this.pages.set(pageAttributes);
+      this.pages.trigger('reset');
+    }, this);
+    this.on( 'change:resources',   function( model, resource_data ){ 
+      this.resources.set(resource_data);
+      DC._.extend(DC.model.Page.prototype.defaults, this.resources.get('page'));
+      DC._.extend(this.notes, { url: this.resources.get('annotations_url') });
+    }, this );
+  }
+});
+
+DC.model.DocumentSet = DC.Backbone.Collection.extend({ model: DC.model.Document });
+
+DC.model.Note = DC.Backbone.Model.extend({});
+
+DC.model.NoteSet = DC.Backbone.Collection.extend({
+  model: DC.model.Note,
+  onPage: function(pageNumber) { return this.where({'page': pageNumber}); } // make this return a shadow
+});
+
+DC.model.Page = DC.Backbone.Model.extend({
+  defaults: {
+    height    : 906,
+    width     : 700,
+    topOffset : 0,
+    imageLoaded: false,
+    hasRealDimensions: false
+  },
+  
+  imageUrl: function(size){
+    size = (size || 'normal');
+    var template = this.constructor.prototype.defaults.image;
+    template     = template.replace(/\{size\}/, size);
+    url          = template.replace(/\{page\}/, this.get('pageNumber'));
+    return url;
+  },
+
+  textUrl: function() {
+    var template = this.constructor.prototype.defaults.text;
+    return template.replace(/\{page\}/, this.get('pageNumber'));
+  },
+  
+  orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
+  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
+});
+
+DC.model.PageSet = DC.Backbone.Collection.extend({
+  model: DC.model.Page,
+  comparator: 'pageNumber'
+},
+{
+  createPages: function(pageCount) {
+    pageCount = (pageCount || 0);
+    var pageAttributes = DC._.map( DC._.range(0, pageCount), function(pageIndex){ return { pageNumber: pageIndex+1 }; } );
+    return new this(pageAttributes);
+  }
+});
+
+DC.model.Section = DC.Backbone.Model.extend({
+  
+});
+
+DC.model.SectionSet = DC.Backbone.Collection.extend({
+  model: DC.model.Section
+});
+
+
+DC.view.DocumentViewer = DC.Backbone.View.extend({
+  className: 'viewer',
+  
+  events: {
+    'click .footer .up'   : 'previousPage',
+    'click .footer .down' : 'nextPage',
+    'click .footer .menu' : 'menu',
+  },
+  
+  initialize: function(options) {
+    //console.log('new viewer');
+    this.model = (options.model || new DC.model.Document());
+    this.createSubviews();
+  },
+  
+  createSubviews: function() {
+    // create ui chrome here.
+    this.renderer = new DC.view.Renderer({model: this.model});
+  },
+  
+  render: function() {
+    // Some code to set the viewer size to the window dimensions
+    // in the event that there aren't explicit limits set.
+    // This should be cleaned up/tested further.
+    // It should also be generalized/extracted to listen to changes in
+    // window dimensions, etc.  Keep it flexible enough to extract and
+    // reuse with a viewer which uses a backbone wrapped iframe as it's
+    // container.
+    var parentHeight = this.$el.parent().height();
+    var parentWidth = this.$el.parent().width();
+    var height = (parentHeight > 0 ? parentHeight : window.innerHeight);
+    var width = (parentWidth > 0 ? parentWidth : window.innerWidth);
+    this.$el.css({ height: height, width: width });
+    
+    // Render the viewer structure
+    this.$el.html(JST['viewer']({ document: this.model }));
+    // Render viewer chrome.
+    // INSERT CHROME CODE HERE.
+    // Render the main renderer.
+    this.renderer.setElement(this.$('.renderer'));
+    this.renderer.render();
+    return this;
+  },
+  
+  /*
+    PUBLIC API
+  */
+  
+  setDocument: function(data) {
+    this.model.set(data);
+    this.render();
+    this.renderer.loadVisiblePages();
+  },
+  
+  load: function(data) { this.setDocument(data); },
+  
+  unload: function() {
+  },
+  
+  nextPage: function(e) {
+    e.preventDefault();
+    this.renderer.jump(this.renderer.currentPage + 1);
+  },
+  
+  previousPage: function(e) {
+    e.preventDefault();
+    this.renderer.jump(this.renderer.currentPage - 1);
+  },
+  
+  
+});
+
+DC._.extend(DV, {
+  loadJSON: function(data) {
+    this.documents.add(data);
+  },
+  
+  documents: new DC.model.DocumentSet(),
+  viewers: {}
+});
