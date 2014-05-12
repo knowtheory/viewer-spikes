@@ -60,7 +60,9 @@ DC.model.Page = DC.Backbone.Model.extend({
   
   orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
   
-  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
+  
+  aspectRatio: function() { return this.get('height') / this.get('width'); }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({

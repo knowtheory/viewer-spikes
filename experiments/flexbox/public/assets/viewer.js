@@ -13271,6 +13271,9 @@ DC.jQuery   = jQuery.noConflict();
 DC.$        = DC.jQuery;
 DV          = DC;
 
+(function(){
+  DC._.extend(DC.lib,{ });
+}());
 DC.model.Document = DC.Backbone.Model.extend({
   initialize: function(attributes, options) {
     attributes = (attributes || {});
@@ -13333,7 +13336,9 @@ DC.model.Page = DC.Backbone.Model.extend({
   
   orientation: function() { return (height > width ? 'portrait' : 'landscape'); },
   
-  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; }  
+  naturalDimensions: function() { return { height: this.get('height'), width: this.get('width') }; },
+  
+  aspectRatio: function() { return this.get('height') / this.get('width'); }
 });
 
 DC.model.PageSet = DC.Backbone.Collection.extend({
@@ -13354,6 +13359,60 @@ DC.model.Section = DC.Backbone.Model.extend({
 
 DC.model.SectionSet = DC.Backbone.Collection.extend({
   model: DC.model.Section
+});
+
+// Renderer is the coordinating component for identifying
+// browser features and instructing Pages how and where they
+// should render.
+DC.view.Renderer = DC.Backbone.View.extend({
+  /* notes:
+    Renderer needs to:
+      * determine what the viewable window size is
+      * figure out what the viewable boundaries are
+      * track scrolling events
+      * 
+  */
+  initialize: function(options){
+    
+  }
+});
+
+DC.view.PageList = DC.Backbone.View.extend({
+  initialize: function(options){}
+});
+
+// A Page view's job is to 
+DC.view.Page     = DC.Backbone.View.extend({
+  initialize: function(options){
+    
+  },
+  scale: function() {
+    this.model.aspectRatio();
+  },
+  project: function(coordinates){
+    var source = DC._.flatten([DC._.toArray(coordinates)]);
+    var projected;
+    return projected;
+  },
+  unproject: function(coordinates){
+    var projected = DC._.flatten([DC._.toArray(coordinates)]);
+    var source;
+  },
+  render: function(){
+    
+  }
+});
+
+DC.view.Note     = DC.Backbone.View.extend({
+  initialize: function(){
+    
+  }
+});
+// Use NoteList to display just notes
+DC.view.NoteList = DC.Backbone.View.extend({
+  initialize: function(){
+    
+  }
 });
 
 
@@ -13378,19 +13437,6 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   },
   
   render: function() {
-    // Some code to set the viewer size to the window dimensions
-    // in the event that there aren't explicit limits set.
-    // This should be cleaned up/tested further.
-    // It should also be generalized/extracted to listen to changes in
-    // window dimensions, etc.  Keep it flexible enough to extract and
-    // reuse with a viewer which uses a backbone wrapped iframe as it's
-    // container.
-    var parentHeight = this.$el.parent().height();
-    var parentWidth = this.$el.parent().width();
-    var height = (parentHeight > 0 ? parentHeight : window.innerHeight);
-    var width = (parentWidth > 0 ? parentWidth : window.innerWidth);
-    this.$el.css({ height: height, width: width });
-    
     // Render the viewer structure
     this.$el.html(JST['viewer']({ document: this.model }));
     // Render viewer chrome.
@@ -13408,7 +13454,6 @@ DC.view.DocumentViewer = DC.Backbone.View.extend({
   setDocument: function(data) {
     this.model.set(data);
     this.render();
-    this.renderer.loadVisiblePages();
   },
   
   load: function(data) { this.setDocument(data); },
